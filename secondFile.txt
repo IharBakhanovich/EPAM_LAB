@@ -1,5 +1,5 @@
-LineOne in second file
-LineTwo in second file
+LineOne in second file updating the first line
+LineTwo in second file updating the second line
 LineThree in second file
 LineFour in second file
 LineFive in second file
