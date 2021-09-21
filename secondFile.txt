@@ -1,5 +1,8 @@
+
 LineOne in second file updating the first line - update from git-1
 LineTwo in second file updating the second line - update from git_1
+LineOne in second file updating the first line
+LineTwo in second file updating the second line
 LineThree in second file
 LineFour in second file
 LineFive in second file
