@@ -1,0 +1,11 @@
+.idea
+out
+target
+*.iml
+logs
+lib
+.gradle
+build
+api/build
+core/build
+
