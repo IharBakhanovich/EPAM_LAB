@@ -1,0 +1,80 @@
+plugins {
+    // Automatically applies 'java' plugin
+    id 'application'
+    id 'java-library'
+    // Provides the ability to publish build artifacts to an Apache Maven repository.
+    id 'maven-publish'
+}
+
+// general project configuration
+group 'org.example'
+version '1.3.5'
+archivesBaseName = "utils"
+
+// Java specific configuration
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+repositories {
+    // Use Maven Central for resolving dependencies
+    mavenCentral()
+}
+
+application {
+    // Define the main class for the application.
+    // Plugin 'application' requires a Main class to run and package an application.
+    mainClass = 'lab.gradle.app.App'
+}
+
+dependencies {
+    // Use Common Lang3 for utils implementation and transit it to users.
+    // This dependency is used by the application and api.
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+
+    // Use JUnit Jupiter for testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.0'
+}
+
+//
+tasks.named("jar") {
+    manifest {
+        attributes("Implementation-Version": project.version)
+        attributes("Application-Name": archivesBaseName)
+        attributes("jdk-version": JavaLanguageVersion.of(8))
+    }
+}
+
+jar.baseName = 'utils'
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            groupId='com.epam.lab.gradle.utils.gradle-dynamic-dependency'
+            artifactId = 'utils'
+
+//            how to use:
+//            dependencies {
+//                compile 'name.alenkov.habr.gradle-dynamic-dependency:library:+'
+//            }
+//            version = new SimpleDateFormat('yyyyMMddHHmm').format(new Date())
+
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = "UtilsRepo"
+            url = uri(layout.buildDirectory.dir('repo'))
+        }
+    }
+}
+
+test {
+    // use JUnit Platform for unit tests
+    useJUnitPlatform()
+}
