@@ -1,25 +1,45 @@
 package com.epam.esm.model.impl;
 
 import com.epam.esm.model.DatabaseEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The POJO that describes the {@link GiftCertificate} entity in the system.
+ */
 public class GiftCertificate implements DatabaseEntity {
     private long id;
     private String name;
     private String description;
     private BigDecimal price;
     private long duration;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime createDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime lastUpdateDate;
     private List<CertificateTag> tags;
 
+    /**
+     * Constructs a {@link GiftCertificate}.
+     */
     public GiftCertificate() {
     }
 
+    /**
+     * Constructs a {@link GiftCertificate} with all the parameters.
+     * @param id the 'id'.
+     * @param name the 'name'.
+     * @param description the 'description'.
+     * @param price the 'price'.
+     * @param duration the 'duration'.
+     * @param createDate the date of creating.
+     * @param lastUpdateDate the date of the last updating.
+     * @param tags all the tags of this {@link GiftCertificate}.
+     */
     public GiftCertificate(long id, String name, String description, BigDecimal price, long duration,
                            LocalDateTime createDate, LocalDateTime lastUpdateDate, List<CertificateTag> tags) {
         this.id = id;

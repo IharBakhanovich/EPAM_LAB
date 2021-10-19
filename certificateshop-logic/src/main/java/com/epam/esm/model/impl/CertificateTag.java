@@ -4,10 +4,16 @@ import com.epam.esm.model.DatabaseEntity;
 
 import java.util.Objects;
 
+/**
+ * The POJO that describes the CertificateTag.
+ */
 public class CertificateTag implements DatabaseEntity {
     private long id;
     private String name;
 
+    /**
+     * Constructs the {@link CertificateTag}.
+     */
     public CertificateTag() {
     }
 
@@ -28,14 +34,29 @@ public class CertificateTag implements DatabaseEntity {
         return id;
     }
 
+    /**
+     * The setter of the id.
+     *
+     * @param id is the {@link long} to set.
+     */
     public void setId(long id) {
         this.id = id;
     }
 
+    /**
+     * A Getter for the {@link CertificateTag} name.
+     *
+     * @return The {@link CertificateTag} name.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * The setter of the name.
+     *
+     * @param name is the {@link String} to set.
+     */
     public void setName(String name) {
         this.name = name;
     }

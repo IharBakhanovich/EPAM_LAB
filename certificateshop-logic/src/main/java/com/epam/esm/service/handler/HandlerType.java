@@ -6,6 +6,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * The class that handles the parameters in the GET /certificates?params query.
+ * The parameters are 'tag_name', part_cert_name, part_descr_name, sortByName, sortByDate.
+ */
 public enum HandlerType {
     BY_TAG_NAME("tag_name") {
         @Override
@@ -65,9 +69,20 @@ public enum HandlerType {
         this.parameterName = parameterName;
     }
 
+    /**
+     * The getter.
+     * @return {@link String} that is the name of the parameter.
+     */
     public String getParameterName() {
         return parameterName;
     }
 
+    /**
+     * The method defines how to handle the list on certificates depends on the value.
+     *
+     * @param certificates the list, that is to handle.
+     * @param value is the value of the params, depends on the method handles the list.
+     * @return {@link List<GiftCertificate>}, which satisfy the conditions of the handling.
+     */
     public abstract List<GiftCertificate> handle(List<GiftCertificate> certificates, String value);
 }

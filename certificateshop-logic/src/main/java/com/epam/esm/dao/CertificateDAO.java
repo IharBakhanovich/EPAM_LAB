@@ -1,6 +1,7 @@
 package com.epam.esm.dao;
 
 import com.epam.esm.exception.DuplicateException;
+import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 
 import java.util.List;
@@ -60,7 +61,18 @@ public interface CertificateDAO extends DAO<GiftCertificate> {
      */
     void saveIdsInHas_tagTable(long certificateId, long tagId);
 
+    /**
+     * Removes the tuple certificateId and tagId from the 'has_tag' table of the database.
+     *
+     * @param certificateId is the id of the {@link GiftCertificate} to remove.
+     * @param tagId is the id of the {@link CertificateTag} to remove.     *
+     */
     void deleteIdsInHas_TagTable(long certificateId, Long tagId);
 
+    /**
+     * Finds certificate without {@link CertificateTag} by its name.
+     * @param name the name to find by.
+     * @return {@link Optional<GiftCertificate>}.
+     */
     Optional<GiftCertificate> findCertificateWithoutTagsByName(String name);
 }

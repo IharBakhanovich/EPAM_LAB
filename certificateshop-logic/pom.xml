@@ -27,11 +27,6 @@
             <artifactId>HikariCP</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>junit</groupId>-->
-<!--            <artifactId>junit</artifactId>-->
-<!--        </dependency>-->
-
         <!-- H2 -->
         <dependency>
             <groupId>com.h2database</groupId>
@@ -43,6 +38,11 @@
             <artifactId>spring-test</artifactId>
             <version>5.3.10</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.12.4</version>
         </dependency>
     </dependencies>
 

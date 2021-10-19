@@ -51,12 +51,6 @@ public class CertificateTagController {
         return tagService.findCertificateTagById(tagId);
     }
 
-    //    // GET /tags/byname?tag_name=12345
-//    @RequestMapping(value = "/byname", method = RequestMethod.GET)
-//    public CertificateTag certificateTagByName(@RequestParam("tag_name") String tagName) {
-//        return tagService.findCertificateTagByName(tagName);
-//    }
-
     /**
      * The method that realises the 'DELETE /tags/{tagId}' query.
      *

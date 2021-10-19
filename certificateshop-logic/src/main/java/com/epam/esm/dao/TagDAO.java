@@ -42,13 +42,19 @@ public interface TagDAO extends DAO<CertificateTag> {
     void update(CertificateTag entity);
 
     /**
-     * Deletes the {@link CertificateTag} object from the database.
+     * Removes the {@link CertificateTag} object from the database.
      *
      * @param id is the value of the {@link long} to find.
      */
     @Override
     void delete(long id);
 
+    /**
+     * Finds all {@link CertificateTag}s by {@link com.epam.esm.model.impl.GiftCertificate} ID.
+     *
+     * @param id is the ID to find by.
+     * @return {@link List<CertificateTag>}.
+     */
     List<CertificateTag> findAllTagsByCertificateId(long id);
 
     /**

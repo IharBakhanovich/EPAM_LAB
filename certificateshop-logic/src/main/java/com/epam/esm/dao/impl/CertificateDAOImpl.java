@@ -2,6 +2,7 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.CertificateDAO;
 import com.epam.esm.model.impl.GiftCertificate;
+import com.epam.esm.model.impl.CertificateTag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The class that implements the CertificateDAO interface.
+ */
 @Repository
 @Component("certificateDAO")
 public class CertificateDAOImpl implements CertificateDAO {
@@ -67,10 +71,20 @@ public class CertificateDAOImpl implements CertificateDAO {
     @Qualifier("certificateMapper")
     private RowMapper<GiftCertificate> certificateMapper;
 
+    /**
+     * The setter of the {@link JdbcTemplate}.
+     *
+     * @param jdbcTemplate is the {@link JdbcTemplate} to set.
+     */
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * The setter of the {@link ResultSetExtractor<List<GiftCertificate>>}.
+     *
+     * @param giftCertificateExtractor is the {@link ResultSetExtractor<List<GiftCertificate>>} to set.
+     */
     public void setGiftCertificateExtractor(ResultSetExtractor<List<GiftCertificate>> giftCertificateExtractor) {
         this.giftCertificateExtractor = giftCertificateExtractor;
     }
@@ -78,17 +92,32 @@ public class CertificateDAOImpl implements CertificateDAO {
     private CertificateDAOImpl() {
     }
 
+    /**
+     * Returns all the {@link GiftCertificate}s in the database.
+     *
+     * @return {@link List<GiftCertificate>}.
+     */
     @Override
     public List<GiftCertificate> findAll() {
         return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, giftCertificateExtractor);
     }
 
-
+    /**
+     * Returns {@link Optional<GiftCertificate>} by its ID.
+     *
+     * @param id is the {@link long} to find.
+     * @return {@link Optional<GiftCertificate>}.
+     */
     @Override
     public Optional<GiftCertificate> findById(long id) {
         return jdbcTemplate.query(FIND_ENTITY_BY_ID_SQL, giftCertificateExtractor, id).stream().findFirst();
     }
 
+    /**
+     * Saves {@link GiftCertificate} in the database.
+     *
+     * @param giftCertificate is the {@link GiftCertificate} to save.
+     */
     @Override
     public void save(GiftCertificate giftCertificate) {
         jdbcTemplate.update(INSERT_ENTITY_SQL,
@@ -100,6 +129,11 @@ public class CertificateDAOImpl implements CertificateDAO {
                 giftCertificate.getLastUpdateDate());
     }
 
+    /**
+     * Updates {@link GiftCertificate}.
+     *
+     * @param giftCertificate is the {@link GiftCertificate} to update.
+     */
     @Override
     public void update(GiftCertificate giftCertificate) {
         jdbcTemplate.update(UPDATE_ENTITY_SQL,
@@ -112,11 +146,22 @@ public class CertificateDAOImpl implements CertificateDAO {
                 giftCertificate.getId());
     }
 
+    /**
+     * Deletes {@link GiftCertificate} from database by its ID.
+     *
+     * @param id is the value of the {@link long} to find.
+     */
     @Override
     public void delete(long id) {
         jdbcTemplate.update(DELETE_ENTITY_BY_ID_SQL, id);
     }
 
+    /**
+     * Finds a {@link Optional<GiftCertificate>} by ist name.
+     *
+     * @param name the value of the parameter 'name' to find.
+     * @return {@link Optional<GiftCertificate>}.
+     */
     @Override
     public Optional<GiftCertificate> findByName(String name) {
         return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, giftCertificateExtractor, name).stream().findFirst();
@@ -134,11 +179,22 @@ public class CertificateDAOImpl implements CertificateDAO {
         jdbcTemplate.update(INSERT_VALUES_IN_HAS_TAG_TABLE_SQL, certificateId, tagId);
     }
 
+    /**
+     * Removes the tuple certificateId and tagId from the 'has_tag' table of the database.
+     *
+     * @param certificateId is the id of the {@link GiftCertificate} to remove.
+     * @param tagId is the id of the {@link CertificateTag} to remove.     *
+     */
     @Override
     public void deleteIdsInHas_TagTable(long certificateId, Long tagId) {
         jdbcTemplate.update(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL, certificateId, tagId);
     }
 
+    /**
+     * Finds certificate without {@link CertificateTag} by its name.
+     * @param name the name to find by.
+     * @return {@link Optional<GiftCertificate>}.
+     */
     @Override
     public Optional<GiftCertificate> findCertificateWithoutTagsByName(String name) {
         return jdbcTemplate.query(FIND_CERTIFICATE_WITHOUT_TAGS_BY_NAME, certificateMapper, name).stream().findFirst();

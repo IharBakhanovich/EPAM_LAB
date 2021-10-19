@@ -42,7 +42,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     /**
-     * Creates a new user in the system.
+     * Creates a new {@link GiftCertificate} in the system.
      *
      * @param giftCertificate is the {@link GiftCertificate} to create.
      * @throws DuplicateException if there is the user with the such a nickname in the system.
@@ -92,7 +92,7 @@ public class CertificateServiceImpl implements CertificateService {
         Optional<GiftCertificate> certificate
                 = certificateDAO.findByName((giftCertificate.getName()));
         long newGiftCertificateId = certificate.get().getId();
-        for (CertificateTag certificateTag : giftCertificate.getTags()
+        for (CertificateTag certificateTag : fetchTagsWithUniqueNames(giftCertificate.getTags())
         ) {
             for (CertificateTag certificateTagFromDB : allTagsInDB
             ) {
@@ -101,6 +101,17 @@ public class CertificateServiceImpl implements CertificateService {
                 }
             }
         }
+    }
+
+    private List<CertificateTag> fetchTagsWithUniqueNames(List<CertificateTag> tags) {
+        List<CertificateTag> uniqueTags = new ArrayList<>();
+        for (CertificateTag certificateTag : tags
+        ) {
+            if (uniqueTags.stream().noneMatch(certificateTag1 -> certificateTag1.getName().equals(certificateTag.getName()))) {
+                uniqueTags.add(certificateTag);
+            }
+        }
+        return uniqueTags;
     }
 
     /**
@@ -126,6 +137,23 @@ public class CertificateServiceImpl implements CertificateService {
     @Override
     public GiftCertificate findCertificateById(long id) {
         return checkAndGetGiftCertificateById(id).get();
+    }
+
+    private Optional<GiftCertificate> checkAndGetGiftCertificateById(long id) {
+        List<String> errorMessage = new ArrayList<>();
+        if (id < 0) {
+            errorMessage.add(translator.toLocale("THE_ID_SHOULD_NOT_BE_LESS_THAN_0"));
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
+        }
+        Optional<GiftCertificate> certificate = certificateDAO.findById(id);
+        if (!certificate.isPresent()) {
+            errorMessage.add(String.format(translator
+                    .toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), id));
+            throw new EntityNotFoundException(
+                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
+        }
+        return certificate;
     }
 
     /**
@@ -158,39 +186,79 @@ public class CertificateServiceImpl implements CertificateService {
         return giftCertificateFromDB;
     }
 
+    private void fillValidateAndUpdateGiftCertificate(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
+        fillCertificateValues(giftCertificate, giftCertificateFromDB);
+        certificateValidator.validateCertificate(giftCertificate, false);
+        giftCertificate.setLastUpdateDate(LocalDateTime.now());
+        giftCertificate.setId(giftCertificateFromDB.getId());
+        certificateDAO.update(giftCertificate);
+        updateHasTagTable(giftCertificate, giftCertificateFromDB);
+    }
+
     private void updateHasTagTable(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
-        List<CertificateTag> allTags = tagDAO.findAll();
-        List<CertificateTag> certificateTagsToUpdate = giftCertificate.getTags();
+        List<CertificateTag> certificateTagsToUpdate = fetchTagsWithUniqueNames(giftCertificate.getTags());
         for (CertificateTag certificateTag : certificateTagsToUpdate
         ) {
-            if (!allTags.contains(certificateTag)) {
-                tagValidator.validateTag(certificateTag, true);
-                if (tagDAO.findByName(certificateTag.getName()).isPresent()) {
-                    List<String> errorMessage = new ArrayList<>();
-                    errorMessage.add(String.format(translator
-                            .toLocale("TAG_WITH_SUCH_NAME_EXIST_IN_DB_MESSAGE"), certificateTag.getName()));
-                    throw new DuplicateException(ERROR_CODE_DUPLICATE + ERROR_CODE_TAG_NOT_VALID, errorMessage);
+            tagValidator.validateTag(certificateTag, true);
+            if (tagDAO.findByName(certificateTag.getName()).isPresent()) {
+                boolean isExistByGiftCertificate = false;
+                isExistByGiftCertificate
+                        = checkByNameIfCertificateTagExist(
+                        giftCertificateFromDB, certificateTag, isExistByGiftCertificate);
+                if (!isExistByGiftCertificate) {
+                    long idOfTag = tagDAO.findByName(certificateTag.getName()).get().getId();
+                    certificateDAO.saveIdsInHas_tagTable(giftCertificate.getId(), idOfTag);
                 }
+            } else {
                 tagDAO.save(certificateTag);
                 CertificateTag newTag = tagDAO.findByName(certificateTag.getName()).get();
                 certificateDAO.saveIdsInHas_tagTable(giftCertificate.getId(), newTag.getId());
             }
         }
-        if (giftCertificateFromDB.getTags().size() == 0) {
-            if (certificateTagsToUpdate != null) {
-                for (CertificateTag certificateTag : certificateTagsToUpdate
-                ) {
-                    certificateDAO.saveIdsInHas_tagTable(giftCertificate.getId(), certificateTag.getId());
-                }
-            }
-        }
+        deleteTagsWhichPresentInCertificateFromDBButNotPresentInTagsToUpdate(
+                giftCertificate, giftCertificateFromDB, certificateTagsToUpdate);
+    }
 
+    private void deleteTagsWhichPresentInCertificateFromDBButNotPresentInTagsToUpdate(
+            GiftCertificate giftCertificate,
+            GiftCertificate giftCertificateFromDB,
+            List<CertificateTag> certificateTagsToUpdate) {
         for (CertificateTag certificateTag : giftCertificateFromDB.getTags()
         ) {
-            if (!certificateTagsToUpdate.contains(certificateTag)) {
+            boolean isPresentInCertificateTagsToUpdate = false;
+            isPresentInCertificateTagsToUpdate
+                    = checkByNameIfCertificateTagIsPresent(
+                    certificateTagsToUpdate, certificateTag, isPresentInCertificateTagsToUpdate);
+            if (!isPresentInCertificateTagsToUpdate) {
                 certificateDAO.deleteIdsInHas_TagTable(giftCertificate.getId(), certificateTag.getId());
             }
         }
+    }
+
+    private boolean checkByNameIfCertificateTagExist(
+            GiftCertificate giftCertificateFromDB, CertificateTag certificateTag, boolean isExistByGiftCertificate) {
+        for (CertificateTag certificateTagOfGiftCertificateFromDB : giftCertificateFromDB.getTags()
+        ) {
+            if (certificateTagOfGiftCertificateFromDB.getName().equals(certificateTag.getName())) {
+                isExistByGiftCertificate = true;
+                break;
+            }
+        }
+        return isExistByGiftCertificate;
+    }
+
+    private boolean checkByNameIfCertificateTagIsPresent(
+            List<CertificateTag> certificateTagsToUpdate,
+            CertificateTag certificateTag,
+            boolean isPresentInCertificateTagsToUpdate) {
+        for (CertificateTag certificateTag1 : certificateTagsToUpdate
+        ) {
+            if (certificateTag.getName().equals(certificateTag1.getName())) {
+                isPresentInCertificateTagsToUpdate = true;
+                break;
+            }
+        }
+        return isPresentInCertificateTagsToUpdate;
     }
 
     private void fillCertificateValues(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
@@ -270,301 +338,4 @@ public class CertificateServiceImpl implements CertificateService {
         }
         return certificate;
     }
-
-//    /**
-//     * Deletes all tags from the {@link GiftCertificate}.
-//     *
-//     * @param id is the id of the {@link GiftCertificate} which {@link CertificateTag}s to delete.
-//     */
-//    @Override
-//    public void deleteAllTagsCertificate(long id) {
-//        Optional<GiftCertificate> certificate = checkAndGetGiftCertificateById(id);
-//
-//        for (CertificateTag certificateTag : certificate.get().getTags()
-//        ) {
-//            certificateDAO.deleteIdsInHas_TagTable(id, certificateTag.getId());
-//        }
-//    }
-
-    private Optional<GiftCertificate> checkAndGetGiftCertificateById(long id) {
-        List<String> errorMessage = new ArrayList<>();
-        if (id < 0) {
-            errorMessage.add(translator.toLocale("THE_ID_SHOULD_NOT_BE_LESS_THAN_0"));
-            throw new MethodArgumentNotValidException(
-                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-        }
-        Optional<GiftCertificate> certificate = certificateDAO.findById(id);
-        if (!certificate.isPresent()) {
-            errorMessage.add(String.format(translator
-                    .toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), id));
-            throw new EntityNotFoundException(
-                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-        }
-        return certificate;
-    }
-
-//    /**
-//     * Deletes {@link CertificateTag} from the {@link GiftCertificate}.
-//     *
-//     * @param certificateId is the id of the {@link GiftCertificate} which {@link CertificateTag} to delete.
-//     * @param tagId         is the id of the {@link CertificateTag}, which is to delete.
-//     */
-//    @Override
-//    public void deleteTagOfCertificate(long certificateId, long tagId) {
-//        List<String> errorMessage = checkIfCertificateIdAndTagIdAreValid(certificateId, tagId);
-//        Optional<GiftCertificate> certificate = certificateDAO.findById(certificateId);
-//        Optional<CertificateTag> certificateTag = tagDAO.findById(tagId);
-//        checkIfCertificateAndTagExistInSystem(errorMessage, certificate, certificateTag, certificateId, tagId);
-//        if (!certificate.get().getTags().contains(certificateTag.get())) {
-//            errorMessage.add(String.format(translator
-//                    .toLocale("THE_CERTIFICATE_DOES_NOT_CONTAIN_THE_CERTIFICATE_TAG_WITH_SUCH_AN_ID"), tagId));
-//            throw new MethodArgumentNotValidException(
-//                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        }
-//        certificateDAO.deleteIdsInHas_TagTable(certificateId, tagId);
-//    }
-
-//    private void checkIfCertificateAndTagExistInSystem(List<String> errorMessage,
-//                                                       Optional<GiftCertificate> certificate,
-//                                                       Optional<CertificateTag> certificateTag,
-//                                                       long certificateId,
-//                                                       long tagId) {
-//        if (!certificate.isPresent()) {
-//            errorMessage.add(String.format(translator.
-//                    toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), certificateId));
-//            if (!certificateTag.isPresent()) {
-//                errorMessage.add(String.format(translator
-//                        .toLocale("THERE_IS_NO_A_TAG_WITH_SUCH_AN_ID_IN_THE_SYSTEM"), tagId));
-//            }
-//            throw new EntityNotFoundException(
-//                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        }
-//    }
-
-//    private List<String> checkIfCertificateIdAndTagIdAreValid(long certificateId, long tagId) {
-//        List<String> errorMessage = new ArrayList<>();
-//        if (certificateId < 0) {
-//            errorMessage.add(translator.toLocale("THE_CERTIFICATE_ID_SHOULD_NOT_BE_LESS_THAN_0"));
-//            if (tagId < 0) {
-//                errorMessage.add(translator.toLocale("THE_TAG_ID_SHOULD_NOT_BE_LESS_THAN_0"));
-//            }
-//            throw new MethodArgumentNotValidException(
-//                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        }
-//        return errorMessage;
-//    }
-
-//    /**
-//     * Adds the existed in the system {@link CertificateTag} to the {@link GiftCertificate}.
-//     *
-//     * @param certificateId is the id of the {@link GiftCertificate} to which {@link CertificateTag} is to add.
-//     * @param tagId         is the id of the {@link CertificateTag}, which is to add.
-//     */
-//    @Override
-//    public GiftCertificate addTagToCertificate(long certificateId, long tagId) {
-//        List<String> errorMessage = checkIfCertificateIdAndTagIdAreValid(certificateId, tagId);
-//        Optional<GiftCertificate> certificate = certificateDAO.findById(certificateId);
-//        Optional<CertificateTag> certificateTag = tagDAO.findById(tagId);
-//        checkIfCertificateAndTagExistInSystem(errorMessage, certificate, certificateTag, certificateId, tagId);
-//        if (certificate.get().getTags().contains(certificateTag.get())) {
-//            errorMessage.add(String.format(translator
-//                    .toLocale("THE_CERTIFICATE_ALREADY_CONTAINS_THE_CERTIFICATE_TAG_WITH_SUCH_AN_ID"), tagId));
-//            throw new MethodArgumentNotValidException(
-//                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        }
-//        certificateDAO.saveIdsInHas_tagTable(certificateId, tagId);
-//        return certificateDAO.findById(certificateId).get();
-//    }
-//
-//    /**
-//     * Creates a new {@link CertificateTag} and adds it to the {@link GiftCertificate}.
-//     *
-//     * @param certificateId  is the id of the {@link GiftCertificate} to which {@link CertificateTag} is to add.
-//     * @param certificateTag is the {@link CertificateTag}, which is to add.
-//     */
-//    @Override
-//    public GiftCertificate addNewTagToCertificate(long certificateId, CertificateTag certificateTag) {
-//        GiftCertificate giftCertificate = checkAndGetGiftCertificateById(certificateId).get();
-//        tagValidator.validateTag(certificateTag, true);
-//        tagDAO.save(certificateTag);
-//        Optional<CertificateTag> newTagFromDB = tagDAO.findByName(certificateTag.getName());
-//        certificateDAO.saveIdsInHas_tagTable(certificateId, newTagFromDB.get().getId());
-//        return certificateDAO.findById(certificateId).get();
-//    }
-
-//    /**
-//     * Updates the {@link GiftCertificate}.
-//     *
-//     * @param certificateName is the name of the {@link GiftCertificate}, which is to update.
-//     * @param giftCertificate is the {@link GiftCertificate}, which contains the updated data.
-//     */
-//    @Override
-//    public GiftCertificate updateCertificateByName(String certificateName, GiftCertificate giftCertificate) {
-//        GiftCertificate giftCertificateFromDB = fetchAndCheckCertificateByName(certificateName).get();
-//        fillValidateAndUpdateGiftCertificate(giftCertificate, giftCertificateFromDB);
-//        return certificateDAO.findById(giftCertificateFromDB.getId()).get();
-//    }
-
-    private void fillValidateAndUpdateGiftCertificate(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
-        fillCertificateValues(giftCertificate, giftCertificateFromDB);
-        certificateValidator.validateCertificate(giftCertificate, false);
-        giftCertificate.setLastUpdateDate(LocalDateTime.now());
-        giftCertificate.setId(giftCertificateFromDB.getId());
-        certificateDAO.update(giftCertificate);
-        updateHasTagTable(giftCertificate, giftCertificateFromDB);
-    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which has the {@link CertificateTag} with the name equals {@param tagName}.
-//     *
-//     * @param tagName is the name of the {@link CertificateTag}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificateByTagName(String tagName) {
-//        Optional<CertificateTag> certificateTag = tagDAO.findByName(tagName);
-//
-//        if (!certificateTag.isPresent()) {
-//            List<String> errorMessage = new ArrayList<>();
-//            errorMessage.add(String.format(translator
-//                    .toLocale("THERE_IS_NO_A_CERTIFICATE_TAG_WITH_SUCH_A_NAME_IN_DATABASE"), tagName));
-//            throw new EntityNotFoundException(
-//                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_TAG_NOT_VALID, errorMessage);
-//        }
-//        List<GiftCertificate> certificatesToReturn = new ArrayList<>();
-//        List<GiftCertificate> allCertificates = certificateDAO.findAll();
-//        for (GiftCertificate certificate : allCertificates
-//        ) {
-//            if (certificate.getTags().contains(certificateTag.get())) {
-//                certificatesToReturn.add(certificate);
-//            }
-//        }
-//        if (certificatesToReturn.isEmpty()) {
-//            List<String> errorMessage = new ArrayList<>();
-//            errorMessage.add(String.format(translator
-//                    .toLocale("THERE_ARE_NO_CERTIFICATES_WHICH_CONTAINS_TAG_WITH_NAME"), tagName));
-//            throw new EntityNotFoundException(
-//                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        } else return certificatesToReturn;
-//    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which name contains {@param partSertName}.
-//     *
-//     * @param partSertName is the part of the name of the {@link GiftCertificate}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificatesByPartSertName(String partSertName) {
-//        List<GiftCertificate> allCertificates = certificateDAO.findAll();
-//        return returnCertificatesByPartSertName(partSertName, allCertificates);
-//    }
-
-//    private List<GiftCertificate> returnCertificatesByPartSertName(String partSertName, List<GiftCertificate> allCertificates) {
-//        List<GiftCertificate> certificatesToReturn = new ArrayList<>();
-//        for (GiftCertificate certificate : allCertificates
-//        ) {
-//            if (certificate.getName().contains(partSertName)) {
-//                certificatesToReturn.add(certificate);
-//            }
-//        }
-//        if (certificatesToReturn.isEmpty()) {
-//            List<String> errorMessage = new ArrayList<>();
-//            errorMessage.add(String.format(translator
-//                    .toLocale("THERE_ARE_NO_CERTIFICATES_WHICH_NAME_CONTAINS_PATH"), partSertName));
-//            throw new EntityNotFoundException(
-//                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        }
-//        return certificatesToReturn;
-//    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which name contains {@param partDescrName}.
-//     *
-//     * @param partDescrName is the part of the description of the {@link GiftCertificate}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificatesByPartDescrName(String partDescrName) {
-//        List<GiftCertificate> allCertificates = certificateDAO.findAll();
-//        return returnCertificatesByPartDescription(partDescrName, allCertificates);
-//    }
-
-//    private List<GiftCertificate> returnCertificatesByPartDescription(String partDescrName, List<GiftCertificate> allCertificates) {
-//        List<GiftCertificate> certificatesToReturn = new ArrayList<>();
-//        for (GiftCertificate certificate : allCertificates
-//        ) {
-//            if (certificate.getDescription().contains(partDescrName)) {
-//                certificatesToReturn.add(certificate);
-//            }
-//        }
-//        if (certificatesToReturn.isEmpty()) {
-//            List<String> errorMessage = new ArrayList<>();
-//            errorMessage.add(String.format(translator
-//                    .toLocale("THERE_ARE_NO_CERTIFICATES_WHICH_DESCRIPTION_CONTAINS_PATH"), partDescrName));
-//            throw new EntityNotFoundException(
-//                    ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
-//        }
-//        return certificatesToReturn;
-//    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which which has the {@link CertificateTag}
-//     * with the name equals {@param tagName} and which name contains {@param partSertName}.
-//     *
-//     * @param tagName      is the name of the {@link CertificateTag}, which is to find.
-//     * @param partSertName is the part of the name of the {@link GiftCertificate}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificatesByTagNameAndPartSertName(String tagName, String partSertName) {
-//        List<GiftCertificate> afterFindByTagName = findCertificateByTagName(tagName);
-//        return returnCertificatesByPartSertName(partSertName, afterFindByTagName);
-//    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which name contains {@param partSertName} and which description
-//     * contains {@param partDescrName}.
-//     *
-//     * @param partSertName  is the part of the name of the {@link GiftCertificate}, which is to find.
-//     * @param partDescrName is the part of the description of the {@link GiftCertificate}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificatesByPartSertNameAndPartDescrName(String partSertName, String partDescrName) {
-//        List<GiftCertificate> allCertificates = certificateDAO.findAll();
-//        List<GiftCertificate> afterNameSelection = returnCertificatesByPartSertName(partSertName, allCertificates);
-//        return returnCertificatesByPartDescription(partDescrName, afterNameSelection);
-//    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which has the {@link CertificateTag}
-//     * with the name equals {@param tagName} and which description contains {@param partDescrName}.
-//     *
-//     * @param tagName       is the name of the {@link CertificateTag}, which is to find.
-//     * @param partDescrName is the part of the description of the {@link GiftCertificate}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificatesByTagNameAndPartDescrName(String tagName, String partDescrName) {
-//        List<GiftCertificate> afterFindByTagName = findCertificateByTagName(tagName);
-//        return returnCertificatesByPartDescription(partDescrName, afterFindByTagName);
-//    }
-
-//    /**
-//     * Returns all {@link GiftCertificate}s which has the {@link CertificateTag}
-//     * with the name equals {@param tagName}, which description contains {@param partDescrName}
-//     * and which name contains {@param partSertName}.
-//     *
-//     * @param tagName       is the name of the {@link CertificateTag}, which is to find.
-//     * @param partSertName  is the part of the name of the {@link GiftCertificate} which is to find.
-//     * @param partDescrName is the part of the description of the {@link GiftCertificate}, which is to find.
-//     * @return {@link List<GiftCertificate>}.
-//     */
-//    @Override
-//    public List<GiftCertificate> findCertificatesByAllParameters(String tagName, String partSertName, String partDescrName) {
-//        List<GiftCertificate> afterFindByTagName = findCertificateByTagName(tagName);
-//        return returnCertificatesByPartSertName(partSertName,
-//                returnCertificatesByPartDescription(partDescrName, afterFindByTagName));
-//    }
 }

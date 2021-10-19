@@ -1,6 +1,5 @@
 package com.epam.esm.dao;
 
-
 import com.epam.esm.configuration.TestConfig;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
@@ -18,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Contains {@link CertificateDAO} tests.
+ */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class, loader = AnnotationConfigContextLoader.class)
 public class CertificateDAOTest {
@@ -25,24 +27,36 @@ public class CertificateDAOTest {
     @Autowired
     private CertificateDAO certificateDAO;
 
+    /**
+     * The test of the findAll() method.
+     */
     @Test
     public void testFindAll() {
         List<GiftCertificate> allGiftCertificates = certificateDAO.findAll();
         Assertions.assertEquals(8, allGiftCertificates.size());
     }
 
+    /**
+     * The test of the findById() method.
+     */
     @Test
     public void testFindById() {
         GiftCertificate giftCertificate = certificateDAO.findById(1).get();
         Assertions.assertEquals(1, giftCertificate.getId());
     }
 
+    /**
+     * the test of the findByName() method.
+     */
     @Test
     public void testFindByName() {
         GiftCertificate giftCertificate = certificateDAO.findByName("cert8").get();
         Assertions.assertEquals("cert8", giftCertificate.getName());
     }
 
+    /**
+     * The test of the save() method.
+     */
     @Test
     public void testSave() {
         List<CertificateTag> tags = new ArrayList<>();
@@ -54,6 +68,9 @@ public class CertificateDAOTest {
         Assertions.assertEquals("cert9", giftCertificate1.getName());
     }
 
+    /**
+     * The test of the delete() method.
+     */
     @Test
     public void testDelete() {
         certificateDAO.delete(1);
@@ -61,6 +78,9 @@ public class CertificateDAOTest {
         Assertions.assertFalse(giftCertificate.isPresent());
     }
 
+    /**
+     * The test of the update() method.
+     */
     @Test
     public void testUpdate() {
         GiftCertificate giftCertificate = certificateDAO.findAll().get(0);
@@ -71,6 +91,9 @@ public class CertificateDAOTest {
         Assertions.assertEquals(giftCertificateAfterUpdate.getDescription(), "NewDescription");
     }
 
+    /**
+     * the test of the saveIdsInHas_tagTable() method.
+     */
     @Test
     public void testSaveIdsInHas_tagTable() {
         GiftCertificate giftCertificate = certificateDAO.findById(8).get();
@@ -81,6 +104,9 @@ public class CertificateDAOTest {
         Assertions.assertEquals(2, giftCertificateAfterSaveInHas_tagTable.getTags().size());
     }
 
+    /**
+     * The test of the deleteIdsInHas_TagTable() method.
+     */
     @Test
     public void testDeleteIdsInHas_TagTable() {
         GiftCertificate giftCertificate = certificateDAO.findById(7).get();

@@ -15,7 +15,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Extract {@link List<GiftCertificate>} from the {@link ResultSet}.
+ */
 @Component("certificateExtractor")
 public class GiftCertificateExtractor implements ResultSetExtractor<List<GiftCertificate>> {
 
@@ -26,6 +28,14 @@ public class GiftCertificateExtractor implements ResultSetExtractor<List<GiftCer
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * Extract {@link List<GiftCertificate>} from the {@link ResultSet}.
+     *
+     * @param resultSet is the {@link ResultSet} to map.
+     * @return {@link List<GiftCertificate>}.
+     * @throws SQLException when something went wrong.
+     * @throws DataAccessException when the datasource is not available.
+     */
     @Override
     public List<GiftCertificate> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
         List<GiftCertificate> giftCertificates = new ArrayList<>();

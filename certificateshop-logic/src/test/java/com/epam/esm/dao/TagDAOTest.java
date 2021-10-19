@@ -13,30 +13,45 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Contains {@link TagDAO} tests.
+ */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class, loader = AnnotationConfigContextLoader.class)
 public class TagDAOTest {
     @Autowired
     private TagDAO tagDAO;
 
+    /**
+     * the test of the findAll() method.
+     */
     @Test
     public void testFindAll() {
         List<CertificateTag> allGiftCertificates = tagDAO.findAll();
         Assertions.assertEquals(7, allGiftCertificates.size());
     }
 
+    /**
+     * The test of the findById() method.
+     */
     @Test
     public void testFindById() {
         CertificateTag certificateTag = tagDAO.findById(1).get();
         Assertions.assertEquals("tag1", certificateTag.getName());
     }
 
+    /**
+     * The test tof the findByName() method.
+     */
     @Test
-    public void testFindbyName() {
+    public void testFindByName() {
         CertificateTag certificateTag = tagDAO.findByName("tag1").get();
         Assertions.assertEquals("tag1", certificateTag.getName());
     }
 
+    /**
+     * The test of the save() method.
+     */
     @Test
     public void testSave() {
         CertificateTag certificateTag = new CertificateTag(0L, "tag8");
@@ -45,6 +60,9 @@ public class TagDAOTest {
         Assertions.assertEquals("tag8", certificateTag1.getName());
     }
 
+    /**
+     * The test of the delete() method.
+     */
     @Test
     public void testDelete() {
         tagDAO.delete(1);
@@ -52,6 +70,9 @@ public class TagDAOTest {
         Assertions.assertFalse(certificateTag.isPresent());
     }
 
+    /**
+     * The test of the update() method.
+     */
     @Test
     public void testUpdate() {
         CertificateTag certificateTag = tagDAO.findAll().get(0);
@@ -62,6 +83,9 @@ public class TagDAOTest {
         Assertions.assertEquals(certificateTagAfterUpdate.getName(), "NewTagName");
     }
 
+    /**
+     * The test of the Find all tagsByCertificateId method.
+     */
     @Test
     public void testFindAllTagsByCertificateId() {
         List<CertificateTag> tags = tagDAO.findAllTagsByCertificateId(2);

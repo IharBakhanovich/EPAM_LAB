@@ -2,13 +2,10 @@ package com.epam.esm.controller;
 
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.CertificateService;
-import org.apache.maven.shared.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +30,18 @@ public class GiftCertificateController {
     /**
      * The method that realises the 'GET /certificates' query.
      *
-     * @return {@link List<GiftCertificate>} - all the {@link GiftCertificate} in the system.
+     * @param parameters: there are following parameters, which can be applied to the query:
+     *                  - tag_name=123 is the name of the tag by which the query will be executed and only certificates,
+     *                  that contain the tag with a mentioned name will be shown;
+     *                  - part_cert_name=123 is the part of a certificate name. Only certificates, which contain
+     *                  the value in their names will be shown;
+     *                  - part_descr_name=123 is the part of a description name. Only certificates, which contain
+     *                  the value in their descriptions will be shown;
+     *                  - sortByName=asc/desc is the parameter to sort all the certificates by name. ASC means
+     *                  to sort in normal order, DESC - the sort order is reversed;
+     *                  -  sortByDate=asc/desc is the parameter to sort all the certificates by CreateDate.
+     *                  ASC means to sort in normal order, DESC - the sort order is reversed.
+     * @return {@link List<GiftCertificate>} - {@link GiftCertificate}s in the system.
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -77,8 +85,8 @@ public class GiftCertificateController {
     }
 
     /**
-     * The method that realises the 'PUT /certificates/{certificateId}' query and updates the {@link GiftCertificate}
-     * with the id equals {@param certificateId}.
+     * The method that realises the 'PUT /certificates/{certificateId}' query and updates
+     * the {@link GiftCertificate} with the id equals {@param certificateId}.
      *
      * @param giftCertificate is the {@link GiftCertificate} to update.
      * @param certificateId   is the id of the {@link GiftCertificate}, which is to update.
@@ -90,145 +98,4 @@ public class GiftCertificateController {
                                                  @RequestBody GiftCertificate giftCertificate) {
         return certificateService.updateCertificate(certificateId, giftCertificate);
     }
-
-//    /**
-//     * The method that realises the 'GET /certificates/search?tag_mane=123&part_cert_name=123&part_descr_name=123&sortByName=true&sortByDate=false
-//     * and returns the {@link List<GiftCertificate>}.
-//     *
-//     * @param tagName the name of the Tag that all {@link GiftCertificate} should contain (optional).
-//     * @param partSertName the part of the name, that all the {@link GiftCertificate} should contain (optional).
-//     * @param partDescrName the part of the description, that all the {@link GiftCertificate} should contain (optional).
-//     * @param sortByName if true sorts ASC by {@link GiftCertificate} name
-//     *                  and if false sorts DESC by {@link GiftCertificate} name (optional).
-//     * @param sortByDate if true sorts ASC by {@link GiftCertificate} createDate
-//     *                   and if false sorts DESC by {@link GiftCertificate} createDate.
-//     * @return the {@link List<GiftCertificate>}.
-//     */
-//    @GetMapping(value = "/search")
-//    public List<GiftCertificate> certificateByName(@RequestParam(required = false, name = "tag_name") String tagName,
-//                                                   @RequestParam(required = false, name = "part_cert_name") String partSertName,
-//                                                   @RequestParam(required = false, name = "part_descr_name") String partDescrName,
-//                                                   @RequestParam(required = false, name = "sortByName") Boolean sortByName,
-//                                                   @RequestParam(required = false, name = "sortByDate") Boolean sortByDate) {
-//        List<GiftCertificate> certificates = fetchCertificatesByParams(tagName, partSertName, partDescrName);
-//        sortCertificates(sortByName, sortByDate, certificates);
-//        return certificates;
-//
-//    }
-//
-//    private void sortCertificates(Boolean sortByName, Boolean sortByDate, List<GiftCertificate> certificates) {
-//        if (sortByName != null && sortByName && sortByDate != null && sortByDate) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getName)
-//                            .thenComparing(GiftCertificate::getCreateDate));
-//        }
-//
-//        if (sortByName != null && !sortByName && sortByDate != null && sortByDate) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getName).reversed()
-//                            .thenComparing(GiftCertificate::getCreateDate));
-//        }
-//        if (sortByName != null && !sortByName && sortByDate != null && !sortByDate) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getName).reversed()
-//                            .thenComparing(GiftCertificate::getCreateDate).reversed());
-//        }
-//
-//        if (sortByName == null && sortByDate != null && !sortByDate) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getCreateDate).reversed());
-//        }
-//
-//        if (sortByName == null && sortByDate != null && sortByDate) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getCreateDate));
-//        }
-//
-//        if (sortByName != null && sortByName && sortByDate == null) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getName));
-//        }
-//
-//        if (sortByName != null && !sortByName && sortByDate == null) {
-//            certificates
-//                    .sort(Comparator.comparing(GiftCertificate::getName).reversed());
-//        }
-//    }
-//
-//    private List<GiftCertificate> fetchCertificatesByParams(String tagName, String partSertName, String partDescrName) {
-//        List<GiftCertificate> certificates = new ArrayList<>();
-//        if (!StringUtils.isEmpty(tagName) && StringUtils.isEmpty(partSertName) && StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findCertificateByTagName(tagName);
-//        }
-//
-//        if (StringUtils.isEmpty(tagName) && !StringUtils.isEmpty(partSertName) && StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findCertificatesByPartSertName(partSertName);
-//        }
-//
-//        if (StringUtils.isEmpty(tagName) && StringUtils.isEmpty(partSertName) && !StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findCertificatesByPartDescrName(partDescrName);
-//        }
-//
-//        if (!StringUtils.isEmpty(tagName) && !StringUtils.isEmpty(partSertName) && StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findCertificatesByTagNameAndPartSertName(tagName, partSertName);
-//        }
-//
-//        if (StringUtils.isEmpty(tagName) && !StringUtils.isEmpty(partSertName) && !StringUtils.isEmpty(partDescrName)) {
-//            certificates
-//                    = certificateService.findCertificatesByPartSertNameAndPartDescrName(partSertName, partDescrName);
-//        }
-//
-//        if (!StringUtils.isEmpty(tagName) && StringUtils.isEmpty(partSertName) && !StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findCertificatesByTagNameAndPartDescrName(tagName, partDescrName);
-//        }
-//
-//        if (!StringUtils.isEmpty(tagName) && !StringUtils.isEmpty(partSertName) && !StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findCertificatesByAllParameters(tagName, partSertName, partDescrName);
-//        }
-//
-//        if (StringUtils.isEmpty(tagName) && StringUtils.isEmpty(partSertName) && StringUtils.isEmpty(partDescrName)) {
-//            certificates = certificateService.findAllCertificates(filters);
-//        }
-//        return certificates;
-//    }
-
-//    // GET /certificates/{certificateId}/tags
-//    @RequestMapping(value = "/{certificateId}/tags", method = RequestMethod.GET)
-//    public List<CertificateTag> certificateTags(@PathVariable("certificateId") long certificateId) {
-//        return certificateService.findCertificateById(certificateId).getTags();
-//    }
-
-//    // DELETE /certificates/{certificateId}/tags/
-//    @RequestMapping(value = "/{certificateId}/tags", method = RequestMethod.DELETE)
-//    public void deleteCertificateTags(@PathVariable("certificateId") long certificateId) {
-//        certificateService.deleteAllTagsCertificate(certificateId);
-//    }
-
-//    // DELETE /certificates/{certificateId}/tags/{tagId}
-//    @RequestMapping(value = "/{certificateId}/tags/{tagId}", method = RequestMethod.DELETE)
-//    public void deleteCertificateTag(@PathVariable("certificateId") long certificateId,
-//                                     @PathVariable("tagId") long tagId) {
-//        certificateService.deleteTagOfCertificate(certificateId, tagId);
-//    }
-
-//    // POST /certificates/{certificateId}/tags/{tagId}
-//    @RequestMapping(value = "/{certificateId}/tags/{tagId}", method = RequestMethod.POST)
-//    public GiftCertificate addCertificateTagToGiftCertificate(@PathVariable("certificateId") long certificateId,
-//                                     @PathVariable("tagId") long tagId) {
-//        return certificateService.addTagToCertificate(certificateId, tagId);
-//    }
-
-//    // POST /certificates/{certificateId}/tags/
-//    @RequestMapping(value = "/{certificateId}/tags/{tagId}", method = RequestMethod.POST)
-//    public GiftCertificate addCertificateTagToGiftCertificate(@PathVariable("certificateId") long certificateId,
-//                                                              @RequestBody CertificateTag certificateTag) {
-//        return certificateService.addNewTagToCertificate(certificateId, certificateTag);
-//    }
-
-//    // PUT /certificates/{name}
-//    @RequestMapping(value = "/{name}", method = RequestMethod.PUT)
-//    public GiftCertificate addCertificateTagToGiftCertificate(@PathVariable("name") String certificateName,
-//                                                              @RequestBody GiftCertificate giftCertificate) {
-//        return certificateService.updateCertificateByName(certificateName, giftCertificate);
-//    }
 }

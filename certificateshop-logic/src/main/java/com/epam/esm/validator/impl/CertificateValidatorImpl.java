@@ -18,6 +18,10 @@ import java.util.List;
 public class CertificateValidatorImpl implements CertificateValidator {
     public static final String ERROR_CODE_METHOD_ARGUMENT_NOT_VALID = "400";
     public static final String ERROR_CODE_CERTIFICATE_NOT_VALID = "01";
+    public static final String CERTIFICATE_NAME_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_30_SIGNS_LONG = "Certificate name should contain only latin letters and should be not more than 30 signs long.";
+    public static final String CERTIFICATE_DESCRIPTION_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_320_SIGNS_LONG = "Certificate description should contain only latin letters and should be not more than 320 signs long.";
+    public static final String PRICE_CAN_NOT_BE_LESS_THAN_0 = "Price can not be less than 0.";
+    public static final String DURATION_SHOULD_BE_MORE_THAN_0 = "Duration should be more than 0";
 
     private Translator translator;
 
@@ -34,24 +38,26 @@ public class CertificateValidatorImpl implements CertificateValidator {
     @Override
     public void validateCertificate(GiftCertificate giftCertificate, boolean isEmptyFieldsAreChecked) {
         List<String> errorMessage = new ArrayList<>();
+        if (isEmptyFieldsAreChecked) {
+            checkEmptyFields(giftCertificate, errorMessage);
+        }
+
         if (!isNameValid(giftCertificate.getName(), 30)) {
-            errorMessage.add("Certificate name should contain only latin letters and should be not more than 30 signs long.");
+            errorMessage.add(translator.toLocale(
+                    "CERTIFICATE_NAME_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_30_SIGNS_LONG"));
         }
 
         if (!isDescriptionValid(giftCertificate.getDescription(), 320)) {
-            errorMessage.add("Certificate description should contain only latin letters and should be not more than 320 signs long.");
+            errorMessage.add(translator.toLocale(
+                    "CERTIFICATE_DESCRIPTION_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_320_SIGNS_LONG"));
         }
 
         if (!isPriceValid(giftCertificate.getPrice())) {
-            errorMessage.add("Price can not be less than 0.");
+            errorMessage.add(translator.toLocale("PRICE_CAN_NOT_BE_LESS_THAN_0"));
         }
 
         if (!(giftCertificate.getDuration() > 0)) {
-            errorMessage.add("Duration should be more than 0");
-        }
-
-        if (isEmptyFieldsAreChecked) {
-            checkEmptyFields(giftCertificate, errorMessage);
+            errorMessage.add(translator.toLocale("DURATION_SHOULD_BE_MORE_THAN_0"));
         }
 
         if (!errorMessage.isEmpty()) {
@@ -75,6 +81,11 @@ public class CertificateValidatorImpl implements CertificateValidator {
 
         if (giftCertificate.getDuration() == 0) {
             errorMessage.add(translator.toLocale("THE_DURATION_FIELD_SHOULD_NOT_BE_EMPTY"));
+        }
+
+        if (!errorMessage.isEmpty()) {
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
         }
     }
 

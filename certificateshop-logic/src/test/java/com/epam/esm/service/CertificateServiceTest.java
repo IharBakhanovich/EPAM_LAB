@@ -3,6 +3,8 @@ package com.epam.esm.service;
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.CertificateDAO;
 import com.epam.esm.dao.TagDAO;
+import com.epam.esm.exception.DuplicateException;
+import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.impl.CertificateServiceImpl;
@@ -12,7 +14,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -23,6 +27,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Contains {@link CertificateService} tests.
+ */
 @ExtendWith({MockitoExtension.class})
 public class CertificateServiceTest {
     @Mock
@@ -36,16 +43,15 @@ public class CertificateServiceTest {
     @Mock
     Translator translator;
 
-    CertificateService certificateService;
+    @Spy
+    @InjectMocks
+    CertificateServiceImpl certificateService;
 
-    @BeforeEach
-    void initUseCase() {
-        certificateService
-                = new CertificateServiceImpl(certificateDAO, tagDAO, certificateValidator, tagValidator, translator);
-    }
-
+    /**
+     * The test of the findAll() method.
+     */
     @Test
-    public void findAll() {
+    public void findAllTest() {
         List<CertificateTag> tags = new ArrayList<>();
         final GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE,
@@ -60,6 +66,9 @@ public class CertificateServiceTest {
         Assertions.assertEquals(certificates, expectedCertificates);
     }
 
+    /**
+     * The test of the createCertificate() method.
+     */
     @Test
     public void shouldThrowErrorWhenSaveCertificateWithTheExistingName() {
         List<CertificateTag> tags = new ArrayList<>();
@@ -68,12 +77,16 @@ public class CertificateServiceTest {
                 30, LocalDateTime.now(), LocalDateTime.now(), tags
         );
         given(certificateDAO.findByName(giftCertificate.getName())).willReturn(Optional.of(giftCertificate));
-        Assertions.assertThrows(NullPointerException.class, () -> certificateService.createCertificate(giftCertificate));
+        given(translator.toLocale(any())).willReturn("test");
+        Assertions.assertThrows(DuplicateException.class, () -> certificateService.createCertificate(giftCertificate));
         verify(certificateDAO, never()).save(any(GiftCertificate.class));
     }
 
+    /**
+     * The test of the findCertificateById() method.
+     */
     @Test
-    public void findById() {
+    public void findByIdTest() {
         List<CertificateTag> tags = new ArrayList<>();
         final GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE,
@@ -85,20 +98,27 @@ public class CertificateServiceTest {
         Assertions.assertEquals(Optional.of(giftCertificate), expectedGiftCertificate);
     }
 
+    /**
+     * The test of the findCertificateById() method.
+     */
     @Test
-    public void shouldThrowErrorByFindById() {
+    public void shouldThrowErrorByFindByIdTest() {
         List<CertificateTag> tags = new ArrayList<>();
         final GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE,
                 30, LocalDateTime.now(), LocalDateTime.now(), tags
         );
         given(certificateDAO.findById(giftCertificate.getId())).willReturn(Optional.empty());
-        Assertions.assertThrows(NullPointerException.class,
+        given(translator.toLocale(any())).willReturn("test");
+        Assertions.assertThrows(EntityNotFoundException.class,
                 () -> certificateService.findCertificateById(giftCertificate.getId()));
     }
 
+    /**
+     * The test of the updateCertificate() method.
+     */
     @Test
-    public void updateCertificate() {
+    public void updateCertificateTest() {
         List<CertificateTag> tags = new ArrayList<>();
         final GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE,
@@ -111,8 +131,11 @@ public class CertificateServiceTest {
         verify(certificateDAO).update(any(GiftCertificate.class));
     }
 
+    /**
+     * The test of the findCertificateByName() method.
+     */
     @Test
-    public void findByName() {
+    public void findByNameTest() {
         List<CertificateTag> tags = new ArrayList<>();
         final GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE,
@@ -124,6 +147,9 @@ public class CertificateServiceTest {
         Assertions.assertEquals(Optional.of(giftCertificate), expectedGiftCertificate);
     }
 
+    /**
+     * The test of the findCertificateByName() method.
+     */
     @Test
     public void shouldThrowErrorByFindByName() {
         List<CertificateTag> tags = new ArrayList<>();
@@ -132,22 +158,30 @@ public class CertificateServiceTest {
                 30, LocalDateTime.now(), LocalDateTime.now(), tags
         );
         given(certificateDAO.findByName(giftCertificate.getName())).willReturn(Optional.empty());
-        Assertions.assertThrows(NullPointerException.class,
+        given(translator.toLocale(any())).willReturn("test");
+        Assertions.assertThrows(EntityNotFoundException.class,
                 () -> certificateService.findCertificateByName(giftCertificate.getName()));
     }
 
+    /**
+     * The test of the deleteCertificate() method.
+     */
     @Test
-    public void shouldThrowErrorByDeleteCertificate() {
+    public void shouldThrowErrorByDeleteCertificateTest() {
         List<CertificateTag> tags = new ArrayList<>();
         final GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE,
                 30, LocalDateTime.now(), LocalDateTime.now(), tags
         );
         given(certificateDAO.findById(giftCertificate.getId())).willReturn(Optional.empty());
-        Assertions.assertThrows(NullPointerException.class,
+        given(translator.toLocale(any())).willReturn("test");
+        Assertions.assertThrows(EntityNotFoundException.class,
                 () -> certificateService.deleteCertificate(giftCertificate.getId()));
     }
 
+    /**
+     * The test of the deleteCertificate() method.
+     */
     @Test
     public void deleteCertificate() {
         List<CertificateTag> tags = new ArrayList<>();
