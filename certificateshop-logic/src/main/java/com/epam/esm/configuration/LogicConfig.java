@@ -35,13 +35,11 @@ public class LogicConfig extends AcceptHeaderLocaleResolver
     private static final String DB_USER_PROPERTY_NAME = "DB_USER";
     private static final String DB_PASSWORD_PROPERTY_NAME = "DB_PASSWORD";
     private static final String DB_MAX_CONNECTIONS_PROPERTY_NAME = "DB_MAX_CONNECTIONS";
-
+    private final Environment environment;
     List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
             new Locale("de"),
             new Locale("ru"));
-
-    private final Environment environment;
 
     @Autowired
     public LogicConfig(Environment environment) {

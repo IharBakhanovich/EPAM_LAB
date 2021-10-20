@@ -23,6 +23,7 @@ public class CertificateShopExceptionHandler {
 
     /**
      * The setter of the {@link Translator}.
+     *
      * @param translator is the value to set.
      */
     public void setTranslator(Translator translator) {
@@ -73,9 +74,9 @@ public class CertificateShopExceptionHandler {
 
     /**
      * Handles all the {@link Exception} except:
-     *                                          - {@link MethodArgumentNotValidException},
-     *                                          - {@link EntityNotFoundException}.
-     *                                          - {@link DuplicateException}.
+     * - {@link MethodArgumentNotValidException},
+     * - {@link EntityNotFoundException}.
+     * - {@link DuplicateException}.
      *
      * @param exception is the {@link Exception} to handle.
      * @return response that contains the data of the {@link Exception}.

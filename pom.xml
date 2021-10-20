@@ -33,6 +33,7 @@
         <junit-vintage-engine.version>5.2.0</junit-vintage-engine.version>
         <h2.version>1.4.200</h2.version>
         <mockito-all.version>1.10.19</mockito-all.version>
+        <projectLombok.version>1.18.20</projectLombok.version>
     </properties>
 
     <dependencyManagement>
@@ -43,13 +44,6 @@
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
             </dependency>
-
-<!--            <dependency>-->
-<!--                <groupId>junit</groupId>-->
-<!--                <artifactId>junit</artifactId>-->
-<!--                <version>${junit.version}</version>-->
-<!--                <scope>test</scope>-->
-<!--            </dependency>-->
 
             <!-- ConnectionPool -->
             <dependency>
@@ -78,6 +72,14 @@
                 <artifactId>h2</artifactId>
                 <version>${h2.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${projectLombok.version}</version>
+                <scope>provided</scope>
             </dependency>
 
         </dependencies>

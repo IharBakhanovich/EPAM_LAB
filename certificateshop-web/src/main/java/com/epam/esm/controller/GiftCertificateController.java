@@ -31,16 +31,16 @@ public class GiftCertificateController {
      * The method that realises the 'GET /certificates' query.
      *
      * @param parameters: there are following parameters, which can be applied to the query:
-     *                  - tag_name=123 is the name of the tag by which the query will be executed and only certificates,
-     *                  that contain the tag with a mentioned name will be shown;
-     *                  - part_cert_name=123 is the part of a certificate name. Only certificates, which contain
-     *                  the value in their names will be shown;
-     *                  - part_descr_name=123 is the part of a description name. Only certificates, which contain
-     *                  the value in their descriptions will be shown;
-     *                  - sortByName=asc/desc is the parameter to sort all the certificates by name. ASC means
-     *                  to sort in normal order, DESC - the sort order is reversed;
-     *                  -  sortByDate=asc/desc is the parameter to sort all the certificates by CreateDate.
-     *                  ASC means to sort in normal order, DESC - the sort order is reversed.
+     *                    - tag_name=123 is the name of the tag by which the query will be executed and only certificates,
+     *                    that contain the tag with a mentioned name will be shown;
+     *                    - part_cert_name=123 is the part of a certificate name. Only certificates, which contain
+     *                    the value in their names will be shown;
+     *                    - part_descr_name=123 is the part of a description name. Only certificates, which contain
+     *                    the value in their descriptions will be shown;
+     *                    - sortByName=asc/desc is the parameter to sort all the certificates by name. ASC means
+     *                    to sort in normal order, DESC - the sort order is reversed;
+     *                    -  sortByDate=asc/desc is the parameter to sort all the certificates by CreateDate.
+     *                    ASC means to sort in normal order, DESC - the sort order is reversed.
      * @return {@link List<GiftCertificate>} - {@link GiftCertificate}s in the system.
      */
     @GetMapping

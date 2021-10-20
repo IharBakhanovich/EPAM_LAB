@@ -1,8 +1,8 @@
 package com.epam.esm.service;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.CertificateDAO;
-import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dao.CertificateDao;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.model.impl.CertificateTag;
@@ -11,7 +11,6 @@ import com.epam.esm.service.impl.CertificateServiceImpl;
 import com.epam.esm.validator.CertificateValidator;
 import com.epam.esm.validator.TagValidator;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,9 +32,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith({MockitoExtension.class})
 public class CertificateServiceTest {
     @Mock
-    CertificateDAO certificateDAO;
+    CertificateDao certificateDAO;
     @Mock
-    TagDAO tagDAO;
+    TagDao tagDAO;
     @Mock
     CertificateValidator certificateValidator;
     @Mock

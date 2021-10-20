@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Contains {@link TagDAO} tests.
+ * Contains {@link TagDao} tests.
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class, loader = AnnotationConfigContextLoader.class)
-public class TagDAOTest {
+public class TagDaoTest {
     @Autowired
-    private TagDAO tagDAO;
+    private TagDao tagDAO;
 
     /**
      * the test of the findAll() method.

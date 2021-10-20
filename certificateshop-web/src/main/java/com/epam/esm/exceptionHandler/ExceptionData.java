@@ -15,6 +15,7 @@ public class ExceptionData {
 
     /**
      * The 'errorCode' getter.
+     *
      * @return 'errorCode'.
      */
     public String getErrorCode() {
@@ -32,6 +33,7 @@ public class ExceptionData {
 
     /**
      * The 'errorMessage' getter.
+     *
      * @return 'errorMessage'.
      */
     public Object getErrorMessage() {

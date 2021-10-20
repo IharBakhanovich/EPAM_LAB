@@ -10,7 +10,7 @@ public class AppException extends RuntimeException {
     /**
      * Constructs the {@link AppException}.
      *
-     * @param errorCode is the code of the error to set.
+     * @param errorCode    is the code of the error to set.
      * @param errorMessage is the messages {@link Object} to set.
      */
     AppException(String errorCode, Object errorMessage) {
@@ -21,6 +21,7 @@ public class AppException extends RuntimeException {
 
     /**
      * The 'errorCode' getter.
+     *
      * @return the 'errorCode'.
      */
     public String getErrorCode() {
@@ -29,6 +30,7 @@ public class AppException extends RuntimeException {
 
     /**
      * The 'errorMessage' getter.
+     *
      * @return the 'errorMessage'.
      */
     public Object getErrorMessage() {

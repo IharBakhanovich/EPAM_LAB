@@ -24,6 +24,12 @@ public class TagValidatorImpl implements TagValidator {
         this.translator = translator;
     }
 
+    private static boolean isUTF8(final byte[] inputBytes) {
+        final String converted = new String(inputBytes, StandardCharsets.UTF_8);
+        final byte[] outputBytes = converted.getBytes(StandardCharsets.UTF_8);
+        return Arrays.equals(inputBytes, outputBytes);
+    }
+
     /**
      * Validates {@link CertificateTag}.
      *
@@ -63,11 +69,5 @@ public class TagValidatorImpl implements TagValidator {
     public boolean isNameValid(String toValidate, int maxLength) {
         byte[] byteArray = toValidate.getBytes();
         return isUTF8(byteArray) && !(toValidate.length() > maxLength);
-    }
-
-    private static boolean isUTF8(final byte[] inputBytes) {
-        final String converted = new String(inputBytes, StandardCharsets.UTF_8);
-        final byte[] outputBytes = converted.getBytes(StandardCharsets.UTF_8);
-        return Arrays.equals(inputBytes, outputBytes);
     }
 }

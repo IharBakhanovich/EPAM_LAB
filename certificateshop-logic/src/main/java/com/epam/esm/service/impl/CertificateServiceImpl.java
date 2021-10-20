@@ -1,19 +1,19 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.CertificateDAO;
-import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dao.CertificateDao;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.CertificateService;
+import com.epam.esm.service.handler.HandlerType;
 import com.epam.esm.validator.CertificateValidator;
 import com.epam.esm.validator.TagValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.epam.esm.service.handler.HandlerType;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -26,14 +26,14 @@ public class CertificateServiceImpl implements CertificateService {
     public static final String ERROR_CODE_CERTIFICATE_NOT_VALID = "01";
     public static final String ERROR_CODE_TAG_NOT_VALID = "02";
 
-    private final CertificateDAO certificateDAO;
-    private final TagDAO tagDAO;
+    private final CertificateDao certificateDAO;
+    private final TagDao tagDAO;
     private final CertificateValidator certificateValidator;
     private final TagValidator tagValidator;
     private final Translator translator;
 
     @Autowired
-    public CertificateServiceImpl(CertificateDAO certificateDAO, TagDAO tagDAO, CertificateValidator certificateValidator, TagValidator tagValidator, Translator translator) {
+    public CertificateServiceImpl(CertificateDao certificateDAO, TagDao tagDAO, CertificateValidator certificateValidator, TagValidator tagValidator, Translator translator) {
         this.certificateDAO = certificateDAO;
         this.tagDAO = tagDAO;
         this.certificateValidator = certificateValidator;
@@ -58,8 +58,7 @@ public class CertificateServiceImpl implements CertificateService {
         certificateValidator.validateCertificate(giftCertificate, true);
         List<String> errorMessage = new ArrayList<>();
         // tag validation
-        for (CertificateTag certificateTag : giftCertificate.getTags()
-        ) {
+        for (CertificateTag certificateTag : giftCertificate.getTags()) {
             if (!tagValidator.isNameValid(certificateTag.getName(), 30)) {
                 errorMessage.add(certificateTag
                         + ": " + translator.toLocale("TAG_NAME_IS_NOT_VALID_ERROR_MESSAGE"));
@@ -79,8 +78,7 @@ public class CertificateServiceImpl implements CertificateService {
 
     private void saveNewTagsInDatabase(GiftCertificate giftCertificate) {
         List<CertificateTag> certificateTags = giftCertificate.getTags();
-        for (CertificateTag certificateTag : certificateTags
-        ) {
+        for (CertificateTag certificateTag : certificateTags) {
             if (!tagDAO.findByName(certificateTag.getName()).isPresent()) {
                 tagDAO.save(certificateTag);
             }
@@ -92,10 +90,8 @@ public class CertificateServiceImpl implements CertificateService {
         Optional<GiftCertificate> certificate
                 = certificateDAO.findByName((giftCertificate.getName()));
         long newGiftCertificateId = certificate.get().getId();
-        for (CertificateTag certificateTag : fetchTagsWithUniqueNames(giftCertificate.getTags())
-        ) {
-            for (CertificateTag certificateTagFromDB : allTagsInDB
-            ) {
+        for (CertificateTag certificateTag : fetchTagsWithUniqueNames(giftCertificate.getTags())) {
+            for (CertificateTag certificateTagFromDB : allTagsInDB) {
                 if (certificateTag.getName().equals(certificateTagFromDB.getName())) {
                     certificateDAO.saveIdsInHas_tagTable(newGiftCertificateId, certificateTagFromDB.getId());
                 }
@@ -105,12 +101,10 @@ public class CertificateServiceImpl implements CertificateService {
 
     private List<CertificateTag> fetchTagsWithUniqueNames(List<CertificateTag> tags) {
         List<CertificateTag> uniqueTags = new ArrayList<>();
-        for (CertificateTag certificateTag : tags
-        ) {
-            if (uniqueTags.stream().noneMatch(certificateTag1 -> certificateTag1.getName().equals(certificateTag.getName()))) {
-                uniqueTags.add(certificateTag);
-            }
-        }
+        tags.stream()
+                .filter(certificateTag -> uniqueTags.stream()
+                        .noneMatch(certificateTag1 -> certificateTag1.getName().equals(certificateTag.getName())))
+                .forEach(uniqueTags::add);
         return uniqueTags;
     }
 
@@ -197,8 +191,7 @@ public class CertificateServiceImpl implements CertificateService {
 
     private void updateHasTagTable(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
         List<CertificateTag> certificateTagsToUpdate = fetchTagsWithUniqueNames(giftCertificate.getTags());
-        for (CertificateTag certificateTag : certificateTagsToUpdate
-        ) {
+        for (CertificateTag certificateTag : certificateTagsToUpdate) {
             tagValidator.validateTag(certificateTag, true);
             if (tagDAO.findByName(certificateTag.getName()).isPresent()) {
                 boolean isExistByGiftCertificate = false;
@@ -223,8 +216,7 @@ public class CertificateServiceImpl implements CertificateService {
             GiftCertificate giftCertificate,
             GiftCertificate giftCertificateFromDB,
             List<CertificateTag> certificateTagsToUpdate) {
-        for (CertificateTag certificateTag : giftCertificateFromDB.getTags()
-        ) {
+        for (CertificateTag certificateTag : giftCertificateFromDB.getTags()) {
             boolean isPresentInCertificateTagsToUpdate = false;
             isPresentInCertificateTagsToUpdate
                     = checkByNameIfCertificateTagIsPresent(
@@ -237,12 +229,10 @@ public class CertificateServiceImpl implements CertificateService {
 
     private boolean checkByNameIfCertificateTagExist(
             GiftCertificate giftCertificateFromDB, CertificateTag certificateTag, boolean isExistByGiftCertificate) {
-        for (CertificateTag certificateTagOfGiftCertificateFromDB : giftCertificateFromDB.getTags()
-        ) {
-            if (certificateTagOfGiftCertificateFromDB.getName().equals(certificateTag.getName())) {
-                isExistByGiftCertificate = true;
-                break;
-            }
+        if (giftCertificateFromDB.getTags()
+                .stream().anyMatch(certificateTagOfGiftCertificateFromDB -> certificateTagOfGiftCertificateFromDB
+                        .getName().equals(certificateTag.getName()))) {
+            isExistByGiftCertificate = true;
         }
         return isExistByGiftCertificate;
     }
@@ -251,12 +241,9 @@ public class CertificateServiceImpl implements CertificateService {
             List<CertificateTag> certificateTagsToUpdate,
             CertificateTag certificateTag,
             boolean isPresentInCertificateTagsToUpdate) {
-        for (CertificateTag certificateTag1 : certificateTagsToUpdate
-        ) {
-            if (certificateTag.getName().equals(certificateTag1.getName())) {
-                isPresentInCertificateTagsToUpdate = true;
-                break;
-            }
+        if (certificateTagsToUpdate.stream()
+                .anyMatch(certificateTag1 -> certificateTag1.getName().equals(certificateTag.getName()))) {
+            isPresentInCertificateTagsToUpdate = true;
         }
         return isPresentInCertificateTagsToUpdate;
     }
@@ -293,10 +280,9 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     private void updateHas_TagTable(GiftCertificate giftCertificate) {
-        for (CertificateTag certificateTag : giftCertificate.getTags()
-        ) {
-            certificateDAO.deleteIdsInHas_TagTable(giftCertificate.getId(), certificateTag.getId());
-        }
+        giftCertificate.getTags()
+                .forEach(certificateTag -> certificateDAO
+                        .deleteIdsInHas_TagTable(giftCertificate.getId(), certificateTag.getId()));
     }
 
     private GiftCertificate checkGiftCertificateById(long id) {

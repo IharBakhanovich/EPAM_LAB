@@ -18,16 +18,18 @@ import java.util.List;
 public class CertificateValidatorImpl implements CertificateValidator {
     public static final String ERROR_CODE_METHOD_ARGUMENT_NOT_VALID = "400";
     public static final String ERROR_CODE_CERTIFICATE_NOT_VALID = "01";
-    public static final String CERTIFICATE_NAME_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_30_SIGNS_LONG = "Certificate name should contain only latin letters and should be not more than 30 signs long.";
-    public static final String CERTIFICATE_DESCRIPTION_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_320_SIGNS_LONG = "Certificate description should contain only latin letters and should be not more than 320 signs long.";
-    public static final String PRICE_CAN_NOT_BE_LESS_THAN_0 = "Price can not be less than 0.";
-    public static final String DURATION_SHOULD_BE_MORE_THAN_0 = "Duration should be more than 0";
 
     private Translator translator;
 
     @Autowired
     public CertificateValidatorImpl(Translator translator) {
         this.translator = translator;
+    }
+
+    private static boolean isUTF8(final byte[] inputBytes) {
+        final String converted = new String(inputBytes, StandardCharsets.UTF_8);
+        final byte[] outputBytes = converted.getBytes(StandardCharsets.UTF_8);
+        return Arrays.equals(inputBytes, outputBytes);
     }
 
     /**
@@ -147,11 +149,5 @@ public class CertificateValidatorImpl implements CertificateValidator {
     public boolean isDescriptionValid(String description, int maxLength) {
         byte[] byteArray = description.getBytes();
         return isUTF8(byteArray) && !(description.length() > maxLength);
-    }
-
-    private static boolean isUTF8(final byte[] inputBytes) {
-        final String converted = new String(inputBytes, StandardCharsets.UTF_8);
-        final byte[] outputBytes = converted.getBytes(StandardCharsets.UTF_8);
-        return Arrays.equals(inputBytes, outputBytes);
     }
 }

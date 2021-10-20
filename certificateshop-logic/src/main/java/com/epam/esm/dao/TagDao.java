@@ -6,7 +6,7 @@ import com.epam.esm.model.impl.CertificateTag;
 import java.util.List;
 import java.util.Optional;
 
-public interface TagDAO extends DAO<CertificateTag> {
+public interface TagDao extends Dao<CertificateTag> {
     /**
      * Saves {@link CertificateTag} in the database.
      *

@@ -3,7 +3,6 @@ package com.epam.esm.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -22,6 +21,7 @@ public class TestConfig extends LogicConfig {
 
     /**
      * the Embedded {@link javax.sql.DataSource} that is used by the DAO testing.
+     *
      * @return {@link javax.sql.DataSource}.
      */
     @Override

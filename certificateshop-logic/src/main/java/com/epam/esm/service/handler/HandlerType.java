@@ -43,7 +43,7 @@ public enum HandlerType {
                 certificates.sort(Comparator.comparing(GiftCertificate::getName));
             }
 
-            if (value.equals("desc")){
+            if (value.equals("desc")) {
                 certificates.sort(Comparator.comparing(GiftCertificate::getName).reversed());
             }
             return certificates;
@@ -56,7 +56,7 @@ public enum HandlerType {
                 certificates.sort(Comparator.comparing(GiftCertificate::getCreateDate));
             }
 
-            if(value.equals("desc")) {
+            if (value.equals("desc")) {
                 certificates.sort(Comparator.comparing(GiftCertificate::getCreateDate).reversed());
             }
             return certificates;
@@ -71,6 +71,7 @@ public enum HandlerType {
 
     /**
      * The getter.
+     *
      * @return {@link String} that is the name of the parameter.
      */
     public String getParameterName() {
@@ -81,7 +82,7 @@ public enum HandlerType {
      * The method defines how to handle the list on certificates depends on the value.
      *
      * @param certificates the list, that is to handle.
-     * @param value is the value of the params, depends on the method handles the list.
+     * @param value        is the value of the params, depends on the method handles the list.
      * @return {@link List<GiftCertificate>}, which satisfy the conditions of the handling.
      */
     public abstract List<GiftCertificate> handle(List<GiftCertificate> certificates, String value);

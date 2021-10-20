@@ -1,7 +1,7 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
@@ -22,12 +22,12 @@ public class TagServiceImpl implements TagService {
     public static final String ERROR_CODE_ENTITY_NOT_FOUND = "404";
     public static final String ERROR_CODE_METHOD_ARGUMENT_NOT_VALID = "400";
     public static final String ERROR_CODE_TAG_NOT_VALID = "02";
-    private final TagDAO tagDAO;
+    private final TagDao tagDAO;
     private final TagValidator tagValidator;
     private final Translator translator;
 
     @Autowired
-    public TagServiceImpl(TagDAO tagDAO, TagValidator tagValidator, Translator translator) {
+    public TagServiceImpl(TagDao tagDAO, TagValidator tagValidator, Translator translator) {
         this.tagDAO = tagDAO;
         this.tagValidator = tagValidator;
         this.translator = translator;

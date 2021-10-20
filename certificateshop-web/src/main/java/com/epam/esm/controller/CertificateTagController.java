@@ -1,12 +1,9 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.model.impl.CertificateTag;
-import com.epam.esm.model.impl.GiftCertificate;
-import com.epam.esm.service.CertificateService;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +18,7 @@ public class CertificateTagController {
 
     /**
      * Constructs the {@link CertificateTagController}.
+     *
      * @param tagService is the service to inject.
      */
     @Autowired
@@ -70,7 +68,6 @@ public class CertificateTagController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
     public CertificateTag addNewTag(@RequestBody CertificateTag certificateTag) {
         return tagService.createCertificateTag(certificateTag);
     }
@@ -80,13 +77,13 @@ public class CertificateTagController {
      * with the id equals {@param tagId}.
      *
      * @param certificateTag is the {@link CertificateTag} to update.
-     * @param tagId is the id of the {@link CertificateTag}, which is to update.
+     * @param tagId          is the id of the {@link CertificateTag}, which is to update.
      * @return the updated {@link CertificateTag}.
      */
     @PutMapping(value = "/{tagId}")
     @ResponseStatus(HttpStatus.OK)
     public CertificateTag updateCertificateTag(@PathVariable("tagId") long tagId,
-                                                 @RequestBody CertificateTag certificateTag) {
+                                               @RequestBody CertificateTag certificateTag) {
         return tagService.updateCertificateTag(tagId, certificateTag);
     }
 }

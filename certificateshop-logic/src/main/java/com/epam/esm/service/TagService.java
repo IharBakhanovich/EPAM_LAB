@@ -1,7 +1,6 @@
 package com.epam.esm.service;
 
 import com.epam.esm.model.impl.CertificateTag;
-import com.epam.esm.model.impl.GiftCertificate;
 
 import java.util.List;
 
@@ -32,7 +31,7 @@ public interface TagService {
     /**
      * Updates a {@link CertificateTag}.
      *
-     * @param tagId is the id of the {@link CertificateTag}, which is to update.
+     * @param tagId          is the id of the {@link CertificateTag}, which is to update.
      * @param certificateTag is the {@link CertificateTag} to update.
      */
     CertificateTag updateCertificateTag(long tagId, CertificateTag certificateTag);

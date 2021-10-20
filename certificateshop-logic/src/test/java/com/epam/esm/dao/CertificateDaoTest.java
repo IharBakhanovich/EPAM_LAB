@@ -18,14 +18,14 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Contains {@link CertificateDAO} tests.
+ * Contains {@link CertificateDao} tests.
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class, loader = AnnotationConfigContextLoader.class)
-public class CertificateDAOTest {
+public class CertificateDaoTest {
 
     @Autowired
-    private CertificateDAO certificateDAO;
+    private CertificateDao certificateDAO;
 
     /**
      * The test of the findAll() method.
@@ -98,8 +98,8 @@ public class CertificateDAOTest {
     public void testSaveIdsInHas_tagTable() {
         GiftCertificate giftCertificate = certificateDAO.findById(8).get();
         Assertions.assertEquals(0, giftCertificate.getTags().size());
-        certificateDAO.saveIdsInHas_tagTable(8,1);
-        certificateDAO.saveIdsInHas_tagTable(8,2);
+        certificateDAO.saveIdsInHas_tagTable(8, 1);
+        certificateDAO.saveIdsInHas_tagTable(8, 2);
         GiftCertificate giftCertificateAfterSaveInHas_tagTable = certificateDAO.findById(8).get();
         Assertions.assertEquals(2, giftCertificateAfterSaveInHas_tagTable.getTags().size());
     }
@@ -111,7 +111,7 @@ public class CertificateDAOTest {
     public void testDeleteIdsInHas_TagTable() {
         GiftCertificate giftCertificate = certificateDAO.findById(7).get();
         Assertions.assertEquals(1, giftCertificate.getTags().size());
-        certificateDAO.deleteIdsInHas_TagTable(7L,7L);
+        certificateDAO.deleteIdsInHas_TagTable(7L, 7L);
         GiftCertificate giftCertificateAfterDelete = certificateDAO.findById(7).get();
         Assertions.assertEquals(0, giftCertificateAfterDelete.getTags().size());
     }

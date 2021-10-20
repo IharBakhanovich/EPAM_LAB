@@ -1,6 +1,6 @@
 package com.epam.esm.dao.impl;
 
-import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.model.impl.CertificateTag;
 import org.apache.logging.log4j.LogManager;
@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The class that implements the {@link TagDAO} interface.
+ * The class that implements the {@link TagDao} interface.
  */
 @Component
-public class TagDAOImpl implements TagDAO {
-    private static final Logger LOGGER = LogManager.getLogger(CertificateDAOImpl.class);
+public class TagDaoImpl implements TagDao {
+    private static final Logger LOGGER = LogManager.getLogger(CertificateDaoImpl.class);
 
     private static final String FIND_ALL_ENTITIES_SQL = "select tag.id as tagId, tag.name as tagName from tag";
     private static final String INSERT_ENTITY_SQL = "insert into tag (name) values (?)";
@@ -42,7 +42,7 @@ public class TagDAOImpl implements TagDAO {
     @Qualifier("certificateTagMapper")
     private RowMapper<CertificateTag> certificateTagRowMapper;
 
-    private TagDAOImpl() {
+    private TagDaoImpl() {
     }
 
     /**

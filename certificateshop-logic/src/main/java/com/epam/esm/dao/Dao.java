@@ -10,7 +10,7 @@ import java.util.Optional;
  * The main interface of the DAO of the application,
  * that defines the main operation on the DB (CRUD).
  */
-public interface DAO<T extends DatabaseEntity> {
+public interface Dao<T extends DatabaseEntity> {
 
     /**
      * Saves {@link T} in the database.

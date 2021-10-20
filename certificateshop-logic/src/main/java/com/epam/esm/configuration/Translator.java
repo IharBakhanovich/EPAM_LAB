@@ -12,15 +12,16 @@ import java.util.Locale;
  */
 @Component
 public class Translator {
-    private static ResourceBundleMessageSource messageSource;
+    private ResourceBundleMessageSource messageSource;
 
     @Autowired
     Translator(ResourceBundleMessageSource messageSource) {
-        Translator.messageSource = messageSource;
+        this.messageSource = messageSource;
     }
 
     /**
      * Fetch messages by the message code from message.properties file.
+     *
      * @param msgCode the code of the message.
      * @return {@link String} that is the value of the {@param msgCode}.
      */

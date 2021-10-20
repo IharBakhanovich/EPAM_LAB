@@ -33,7 +33,7 @@ public class GiftCertificateExtractor implements ResultSetExtractor<List<GiftCer
      *
      * @param resultSet is the {@link ResultSet} to map.
      * @return {@link List<GiftCertificate>}.
-     * @throws SQLException when something went wrong.
+     * @throws SQLException        when something went wrong.
      * @throws DataAccessException when the datasource is not available.
      */
     @Override
@@ -41,9 +41,9 @@ public class GiftCertificateExtractor implements ResultSetExtractor<List<GiftCer
         List<GiftCertificate> giftCertificates = new ArrayList<>();
 
         while (resultSet.next()) {
-            final long currentId = resultSet.getLong("certificateId");
+            final long currentId = resultSet.getLong(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_ID);
             if (giftCertificates.stream().anyMatch(giftCertificate -> giftCertificate.getId() == currentId)) {
-                if (resultSet.getLong("tagId") != 0) {
+                if (resultSet.getLong(ColumnNames.TABLE_TAG_COLUMN_ID) != 0) {
                     CertificateTag certificateTag = tagRowMapper.mapRow(resultSet, resultSet.getRow());
                     giftCertificates.stream()
                             .filter(giftCertificate -> giftCertificate.getId() == currentId)
@@ -52,17 +52,17 @@ public class GiftCertificateExtractor implements ResultSetExtractor<List<GiftCer
             } else {
                 List<CertificateTag> allTagsThisCertificate = new ArrayList<CertificateTag>();
                 GiftCertificate giftCertificate = new GiftCertificate(
-                        resultSet.getLong("certificateId"),
-                        resultSet.getString("certificateName"),
-                        resultSet.getString("certificateDescription"),
-                        resultSet.getBigDecimal("certificatePrice"),
-                        resultSet.getLong("certificateDuration"),
-                        resultSet.getTimestamp("certificateCreateDate").toLocalDateTime(),
-                        resultSet.getTimestamp("certificateLastUpdateDate").toLocalDateTime(),
+                        resultSet.getLong(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_ID),
+                        resultSet.getString(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_NAME),
+                        resultSet.getString(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_DESCRIPTION),
+                        resultSet.getBigDecimal(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_PRICE),
+                        resultSet.getLong(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_DURATION),
+                        resultSet.getTimestamp(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_CREATE_DATE).toLocalDateTime(),
+                        resultSet.getTimestamp(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_LAST_UPDATE_DATE).toLocalDateTime(),
                         allTagsThisCertificate
                 );
                 giftCertificates.add(giftCertificate);
-                if(resultSet.getLong("tagId") != 0) {
+                if (resultSet.getLong(ColumnNames.TABLE_TAG_COLUMN_ID) != 0) {
                     CertificateTag certificateTag = tagRowMapper.mapRow(resultSet, resultSet.getRow());
                     giftCertificates.stream()
                             .filter(giftCertificate1 -> giftCertificate1.getId() == currentId)

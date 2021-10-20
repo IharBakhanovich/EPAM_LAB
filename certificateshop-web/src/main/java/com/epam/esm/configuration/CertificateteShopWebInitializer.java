@@ -13,6 +13,7 @@ public class CertificateteShopWebInitializer extends AbstractAnnotationConfigDis
 
     /**
      * Defines {@link javax.servlet.ServletConfig} classes.
+     *
      * @return array with all config classes which is to investigate.
      */
     @Override
@@ -22,6 +23,7 @@ public class CertificateteShopWebInitializer extends AbstractAnnotationConfigDis
 
     /**
      * Defines ServletMapping.
+     *
      * @return the mapping of the {@link javax.servlet.Servlet}.
      */
     @Override

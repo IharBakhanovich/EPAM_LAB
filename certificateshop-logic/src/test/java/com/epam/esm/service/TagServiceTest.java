@@ -1,7 +1,7 @@
 package com.epam.esm.service;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.model.impl.CertificateTag;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 public class TagServiceTest {
 
     @Mock
-    TagDAO tagDAO;
+    TagDao tagDAO;
     @Mock
     TagValidator tagValidator;
     @Mock
@@ -163,7 +163,6 @@ public class TagServiceTest {
     public void createCertificateTagTest() {
         final CertificateTag certificateTag = new CertificateTag(1L, "tag1");
         given(tagDAO.findByName(certificateTag.getName())).willReturn(Optional.empty());
-//        given(tagService.findCertificateTagByName(any())).willReturn(certificateTag);
         doReturn(certificateTag).when(tagService).findCertificateTagByName(any()); //изменили поведение реального метода
         tagService.createCertificateTag(certificateTag);
         verify(tagDAO, times(1)).save(certificateTag);

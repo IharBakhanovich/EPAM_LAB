@@ -1,13 +1,15 @@
 package com.epam.esm.dao.impl;
 
-import com.epam.esm.dao.CertificateDAO;
-import com.epam.esm.model.impl.GiftCertificate;
+import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.model.impl.CertificateTag;
+import com.epam.esm.model.impl.GiftCertificate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
@@ -19,9 +21,9 @@ import java.util.Optional;
  */
 @Repository
 @Component("certificateDAO")
-public class CertificateDAOImpl implements CertificateDAO {
+public class CertificateDaoImpl implements CertificateDao {
 
-    private static final Logger LOGGER = LogManager.getLogger(CertificateDAOImpl.class);
+    private static final Logger LOGGER = LogManager.getLogger(CertificateDaoImpl.class);
 
     private static final String FIND_ALL_ENTITIES_SQL
             = "select c.id as certificateId, c.name as certificateName," +
@@ -52,8 +54,10 @@ public class CertificateDAOImpl implements CertificateDAO {
             " c.last_update_date as certificateLastUpdateDate, t.id as tagId, t.name as tagName" +
             " from gift_certificate as c LEFT OUTER JOIN (has_tag as h LEFT OUTER JOIN tag as t ON t.id = h.tagId)" +
             " ON c.id = h.certificateId where c.name = ?";
-    private static final String INSERT_VALUES_IN_HAS_TAG_TABLE_SQL = "insert into has_tag (certificateId, tagId) values (?, ?)";
-    private static final String DELETE_VALUES_IN_HAS_TAG_TABLE_SQL = "delete from has_tag where certificateId = ? and tagId = ?";
+    private static final String INSERT_VALUES_IN_HAS_TAG_TABLE_SQL
+            = "insert into has_tag (certificateId, tagId) values (?, ?)";
+    private static final String DELETE_VALUES_IN_HAS_TAG_TABLE_SQL
+            = "delete from has_tag where certificateId = ? and tagId = ?";
     private static final String FIND_CERTIFICATE_WITHOUT_TAGS_BY_NAME
             = "select c.id as certificateId, c.name as certificateName," +
             " c.description as certificateDescription, c.duration as certificateDuration," +
@@ -71,6 +75,9 @@ public class CertificateDAOImpl implements CertificateDAO {
     @Qualifier("certificateMapper")
     private RowMapper<GiftCertificate> certificateMapper;
 
+    private CertificateDaoImpl() {
+    }
+
     /**
      * The setter of the {@link JdbcTemplate}.
      *
@@ -87,9 +94,6 @@ public class CertificateDAOImpl implements CertificateDAO {
      */
     public void setGiftCertificateExtractor(ResultSetExtractor<List<GiftCertificate>> giftCertificateExtractor) {
         this.giftCertificateExtractor = giftCertificateExtractor;
-    }
-
-    private CertificateDAOImpl() {
     }
 
     /**
@@ -171,8 +175,7 @@ public class CertificateDAOImpl implements CertificateDAO {
      * Saves certificateId and tagId in the database.
      *
      * @param certificateId is the id of the {@link GiftCertificate} to save.
-     * @param tagId is the id of the {@link com.epam.esm.model.impl.CertificateTag} to save
-     *
+     * @param tagId         is the id of the {@link com.epam.esm.model.impl.CertificateTag} to save
      */
     @Override
     public void saveIdsInHas_tagTable(long certificateId, long tagId) {
@@ -183,7 +186,7 @@ public class CertificateDAOImpl implements CertificateDAO {
      * Removes the tuple certificateId and tagId from the 'has_tag' table of the database.
      *
      * @param certificateId is the id of the {@link GiftCertificate} to remove.
-     * @param tagId is the id of the {@link CertificateTag} to remove.     *
+     * @param tagId         is the id of the {@link CertificateTag} to remove.     *
      */
     @Override
     public void deleteIdsInHas_TagTable(long certificateId, Long tagId) {
@@ -192,6 +195,7 @@ public class CertificateDAOImpl implements CertificateDAO {
 
     /**
      * Finds certificate without {@link CertificateTag} by its name.
+     *
      * @param name the name to find by.
      * @return {@link Optional<GiftCertificate>}.
      */
