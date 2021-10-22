@@ -20,7 +20,7 @@ import java.util.*;
 
 @Service
 public class CertificateServiceImpl implements CertificateService {
-    public static final String ERROR_CODE_DUPLICATE = "400";
+    public static final String ERROR_CODE_DUPLICATE = "409";
     public static final String ERROR_CODE_ENTITY_NOT_FOUND = "404";
     public static final String ERROR_CODE_METHOD_ARGUMENT_NOT_VALID = "400";
     public static final String ERROR_CODE_CERTIFICATE_NOT_VALID = "01";
@@ -260,6 +260,9 @@ public class CertificateServiceImpl implements CertificateService {
         }
         if (giftCertificate.getDuration() == 0) {
             giftCertificate.setDuration(giftCertificateFromDB.getDuration());
+        }
+        if (giftCertificate.getTags() == null) {
+            giftCertificate.setTags(giftCertificateFromDB.getTags());
         }
         giftCertificate.setCreateDate(giftCertificateFromDB.getCreateDate());
         giftCertificate.setLastUpdateDate(giftCertificateFromDB.getLastUpdateDate());

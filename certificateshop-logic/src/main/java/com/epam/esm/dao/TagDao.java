@@ -64,4 +64,11 @@ public interface TagDao extends Dao<CertificateTag> {
      * @return {@link Optional<CertificateTag>}.
      */
     Optional<CertificateTag> findByName(String name);
+
+    /**
+     * Removes records from 'has_tag' table by tagId.
+     *
+     * @param tagId is the id to remove by.
+     */
+    void deleteFromHasTagByTagId(long tagId);
 }

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class CertificateShopExceptionHandler {
     public static final String ERROR_CODE_FOR_OTHER_EXCEPTION = "40099";
-    public static final String ERROR_MESSAGE_FOR_OTHER_EXCEPTION = "Incorrect data was entered.";
+    public static final String ERROR_MESSAGE_FOR_OTHER_EXCEPTION = "Entered incorrect data.";
 
     @Autowired
     private Translator translator;
@@ -85,7 +85,8 @@ public class CertificateShopExceptionHandler {
     public ResponseEntity<ExceptionData> handleOtherException(Exception exception) {
         ExceptionData exceptionData = new ExceptionData();
         exceptionData.setErrorCode(ERROR_CODE_FOR_OTHER_EXCEPTION);
-        exceptionData.setErrorMessage(exception.getMessage());
+        exceptionData.setErrorMessage(ERROR_MESSAGE_FOR_OTHER_EXCEPTION);
+//        exceptionData.setErrorMessage(exception.getMessage());
         return new ResponseEntity<>(exceptionData, HttpStatus.BAD_REQUEST);
     }
 }

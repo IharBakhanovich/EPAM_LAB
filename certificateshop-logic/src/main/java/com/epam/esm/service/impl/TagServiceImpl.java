@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Service
 public class TagServiceImpl implements TagService {
-    public static final String ERROR_CODE_DUPLICATE = "400";
+    public static final String ERROR_CODE_DUPLICATE = "409";
     public static final String ERROR_CODE_ENTITY_NOT_FOUND = "404";
     public static final String ERROR_CODE_METHOD_ARGUMENT_NOT_VALID = "400";
     public static final String ERROR_CODE_TAG_NOT_VALID = "02";
@@ -131,7 +131,7 @@ public class TagServiceImpl implements TagService {
         Optional<CertificateTag> certificateTag = tagDAO.findById(id);
         checkByTagIfTagPresentInDB(certificateTag, id);
         tagDAO.delete(id);
-
+        tagDAO.deleteFromHasTagByTagId(id);
     }
 
     private void checkByTagIfTagPresentInDB(Optional<CertificateTag> certificateTag, long id) {

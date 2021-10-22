@@ -25,6 +25,7 @@ public class TagDaoImpl implements TagDao {
     private static final String FIND_ALL_ENTITIES_SQL = "select tag.id as tagId, tag.name as tagName from tag";
     private static final String INSERT_ENTITY_SQL = "insert into tag (name) values (?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from tag where id = ?";
+    private static final String DELETE_FROM_HAS_TAG_BY_TAG_ID_SQL = "delete from has_tag where tagId = ?";
     private static final String UPDATE_ENTITY_SQL = "update tag set name = ? where id = ?";
     private static final String FIND_ENTITY_BY_ID_SQL
             = "select tag.id as tagId, tag.name as tagName from tag where id = ?";
@@ -97,6 +98,16 @@ public class TagDaoImpl implements TagDao {
     @Override
     public void delete(long id) {
         jdbcTemplate.update(DELETE_ENTITY_BY_ID_SQL, id);
+    }
+
+    /**
+     * Removes records from 'has_tag' table by tagId.
+     *
+     * @param tagId is the id to remove by.
+     */
+    @Override
+    public void deleteFromHasTagByTagId(long tagId) {
+        jdbcTemplate.update(DELETE_FROM_HAS_TAG_BY_TAG_ID_SQL, tagId);
     }
 
     /**
