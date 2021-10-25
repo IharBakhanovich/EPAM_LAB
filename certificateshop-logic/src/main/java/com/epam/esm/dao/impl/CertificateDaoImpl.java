@@ -75,7 +75,7 @@ public class CertificateDaoImpl implements CertificateDao {
     @Qualifier("certificateMapper")
     private RowMapper<GiftCertificate> certificateMapper;
 
-    private CertificateDaoImpl() {
+    public CertificateDaoImpl() {
     }
 
     /**
