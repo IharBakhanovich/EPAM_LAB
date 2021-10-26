@@ -20,5 +20,6 @@ public class Order implements DatabaseEntity {
     private User user;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime createDate;
+    private String name;
     private List<GiftCertificate> certificates;
 }

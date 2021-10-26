@@ -16,5 +16,5 @@ import java.util.List;
 public class User implements DatabaseEntity {
     private long id;
     private String nickName;
-    private List<Order> orders;
+    //private List<Order> orders;
 }
