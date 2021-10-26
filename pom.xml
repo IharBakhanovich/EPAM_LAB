@@ -43,6 +43,8 @@
         <spring-boot-starter.version>2.5.5</spring-boot-starter.version>
         <spring-boot-dependencies.version>2.5.5</spring-boot-dependencies.version>
         <spring-boot-starter-web.version>2.5.5</spring-boot-starter-web.version>
+        <spring-boot-starter-hateoas.version>2.5.5</spring-boot-starter-hateoas.version>
+        <spring-boot-maven-plugin.version>2.5.5</spring-boot-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -51,7 +53,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-jdbc</artifactId>
-                <version>2.5.5</version>
+                <version>${spring-boot-maven-plugin.version}</version>
             </dependency>
 
             <!-- MySQL-->
@@ -59,6 +61,13 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
+            </dependency>
+
+            <!-- HATEOAS-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-hateoas</artifactId>
+                <version>${spring-boot-starter-hateoas.version}</version>
             </dependency>
 
 <!--            &lt;!&ndash; ConnectionPool &ndash;&gt;-->
@@ -137,6 +146,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>2.5.5</version>
         </dependency>
 
         <!-- the logger log4j2 -->
@@ -240,6 +255,10 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
