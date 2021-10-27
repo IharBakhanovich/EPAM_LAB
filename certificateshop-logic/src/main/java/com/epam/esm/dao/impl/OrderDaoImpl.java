@@ -4,6 +4,7 @@ import com.epam.esm.dao.OrderDao;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -68,7 +69,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public void save(Order order) {
         jdbcTemplate.update(INSERT_ENTITY_SQL,
-                order.getName(),
+                order.getUser().getId(),
                 order.getCreateDate(),
                 order.getName());
     }
@@ -135,11 +136,10 @@ public class OrderDaoImpl implements OrderDao {
      * @param certificateId   is the id of the {@link GiftCertificate} to save.
      * @param giftCertificate is the id of the {@link GiftCertificate} to save in JSON format.
      */
-    @SneakyThrows
     @Override
     public void saveIdsInUserorder_certificateTable(long orderId, long certificateId, GiftCertificate giftCertificate) {
-        ObjectMapper mapper = new ObjectMapper();
-        String certificateInJson = mapper.writeValueAsString(giftCertificate);
+        Gson gson = new Gson();
+        String certificateInJson = gson.toJson(giftCertificate);
         jdbcTemplate.update(INSERT_VALUES_IN_USERORDER_CERTIFICATE_TABLE_SQL, orderId, certificateId, certificateInJson);
     }
 }

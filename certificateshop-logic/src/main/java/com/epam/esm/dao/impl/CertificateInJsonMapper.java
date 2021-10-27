@@ -3,6 +3,7 @@ package com.epam.esm.dao.impl;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -26,8 +27,8 @@ public class CertificateInJsonMapper implements RowMapper<GiftCertificate> {
     @SneakyThrows
     @Override
     public GiftCertificate mapRow(ResultSet resultSet, int i) throws SQLException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(
+        Gson gson = new Gson();
+        return gson.fromJson(
                 resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON),
                 GiftCertificate.class);
     }

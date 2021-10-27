@@ -6,7 +6,6 @@ import com.epam.esm.model.impl.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,18 +13,32 @@ import java.util.Optional;
 
 @Repository
 public class UserDaoImpl implements UserDao {
-    private static final String FIND_ALL_ENTITIES_SQL = "select user.id as userId, user.nickName as userNickName from user";
-    private static final String FIND_ALL_USERS_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId, uoc.certificateInJSON as orderCertificate from user as u" +
+    //    private static final String FIND_ALL_ENTITIES_SQL = "select user.id as userId, user.nickName as userNickName from user";
+    private static final String FIND_ALL_ENTITIES_SQL
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
     private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from user where id = ?";
     private static final String UPDATE_ENTITY_SQL = "update user set nickName = ? where id = ?";
     private static final String FIND_ENTITY_BY_ID_SQL
-            = "select user.id as userId, user.nickName as userNickName from user where id = ?";
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
+            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+            " ON u.id = uo.userId where u.id = ?";
+    //    private static final String FIND_ENTITY_BY_ID_SQL
+//            = "select user.id as userId, user.nickName as userNickName from user where id = ?";
     private static final String FIND_ENTITY_BY_NAME_SQL
-            = "select user.id as userId, user.nickName as userNickName from user where nickName = ?";
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
+            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+            " ON u.id = uo.userId where u.nickName = ?";
+//    private static final String FIND_ENTITY_BY_NAME_SQL
+//            = "select user.id as userId, user.nickName as userNickName from user where nickName = ?";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -33,7 +46,10 @@ public class UserDaoImpl implements UserDao {
     @Autowired
     private RowMapper<User> userRowMapper;
 
-    private UserDaoImpl() {
+    @Autowired
+    private UserExtractor userExtractor;
+
+    public UserDaoImpl() {
     }
 
     /**
@@ -54,7 +70,7 @@ public class UserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAll() {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, userRowMapper);
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, userExtractor);
     }
 
     /**
@@ -65,7 +81,7 @@ public class UserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findById(long id) {
-        return jdbcTemplate.query(FIND_ENTITY_BY_ID_SQL, userRowMapper, id).stream().findFirst();
+        return jdbcTemplate.query(FIND_ENTITY_BY_ID_SQL, userExtractor, id).stream().findFirst();
     }
 
     /**
@@ -96,6 +112,18 @@ public class UserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findByName(String nickName) {
-        return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, userRowMapper, nickName).stream().findFirst();
+        return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, userExtractor, nickName).stream().findFirst();
+    }
+
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public void setUserRowMapper(RowMapper<User> userRowMapper) {
+        this.userRowMapper = userRowMapper;
+    }
+
+    public void setUserExtractor(UserExtractor userExtractor) {
+        this.userExtractor = userExtractor;
     }
 }

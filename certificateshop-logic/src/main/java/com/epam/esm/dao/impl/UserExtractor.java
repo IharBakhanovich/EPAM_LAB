@@ -1,5 +1,7 @@
 package com.epam.esm.dao.impl;
 
+import com.epam.esm.model.impl.GiftCertificate;
+import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -33,52 +35,80 @@ public class UserExtractor implements ResultSetExtractor<List<User>> {
      */
     @Override
     public List<User> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-//        List<User> users = new ArrayList<>();
-//
-//        while (resultSet.next()) {
-//            final long currentId = resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ID);
-//            final long currentOrderId = resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID);
-//            if (users.stream().anyMatch(user -> user.getId() == currentId)) {
-//                User user = users.stream().filter(user1 -> user1.getId() == currentId).findAny().get();
-//                if (user.getOrders().stream()
-//                        .anyMatch(order -> order.getId() == currentOrderId)) {
-//                    if (resultSet.getString(ColumnNames.TABLE_USER_ORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-//                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-//                        users.stream()
-//                                .filter(user2 -> user2.getId() == currentId)
-//                                .findAny().ifPresent(user2 -> user2.getOrders()
-//                                        .stream()
-//                                        .filter(order -> order.getId() == currentOrderId)
-//                                        .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate)));
-//                    }
-//                } else {
-//                    Order newOrder = new Order(
-//                            resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID),
-//
-//                    )
-//
-//                }
-//
-//            } else {
-//                List<Order> allOrdersThisUser = new ArrayList<Order>();
-//                User user = new User(
-//                        resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ID),
-//                        resultSet.getString(ColumnNames.TABLE_USER_COLUMN_NICKNAME),
-//                        allOrdersThisUser
-//                );
-//                users.add(user);
-//                if (resultSet.getString(ColumnNames.TABLE_USER_ORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-//                    GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-//                    users.stream()
-//                            .filter(user1 -> user1.getId() == currentId)
-//                            .findAny().ifPresent(user1 -> user1.getOrders()
-//                                    .stream()
-//                                    .filter(order -> order.getId() == currentOrderId)
-//                                    .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate)));
-//                }
-//            }
-//        }
-        return new ArrayList<>();
+        List<User> users = new ArrayList<>();
+
+        while (resultSet.next()) {
+            final long currentId = resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ID);
+            final long currentOrderId = resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID);
+            if (users.stream().anyMatch(user -> user.getId() == currentId)) {
+                User user = users.stream().filter(user1 -> user1.getId() == currentId).findAny().get();
+                if (user.getOrders().stream().anyMatch(order -> order.getId() == currentOrderId)) {
+                    addGiftCertificateToCorrespondingOrderOfUserOrders(resultSet, users, currentId, currentOrderId);
+                } else {
+                    Order newOrder = createNewOrderFromResultSetLine(resultSet);
+                    if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+                        newOrder.getCertificates().add(giftCertificate);
+                        users.stream().filter(user2 -> user2.getId() == currentId)
+                                .findAny().ifPresent(user2 -> user2.getOrders().add(newOrder));
+                    }
+                }
+            } else {
+                List<Order> allOrdersThisUser = new ArrayList<Order>();
+                User user = createNewUserFromResultSetLine(resultSet, allOrdersThisUser);
+                if (resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID) != 0) {
+                    Order newOrder = createNewOrderFromResultSetLine(resultSet);
+                    user.getOrders().add(newOrder);
+                    users.add(user);
+                    addGiftCertificateToNewOrderOfUsersOrders(resultSet, users, currentId, currentOrderId, newOrder);
+                } else {
+                    users.add(user);
+                }
+            }
+        }
+        return users;
     }
 
+    private User createNewUserFromResultSetLine(ResultSet resultSet, List<Order> allOrdersThisUser) throws SQLException {
+        User user = new User(
+                resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ID),
+                resultSet.getString(ColumnNames.TABLE_USER_COLUMN_NICKNAME),
+                allOrdersThisUser
+        );
+        return user;
+    }
+
+    private Order createNewOrderFromResultSetLine(ResultSet resultSet) throws SQLException {
+        return new Order(
+                resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID),
+                null,
+                resultSet.getTimestamp(ColumnNames.TABLE_USERORDER_COLUMN_CREATE_DATE).toLocalDateTime(),
+                resultSet.getString(ColumnNames.TABLE_USERORDER_COLUMN_NAME),
+                new ArrayList<>()
+        );
+    }
+
+    private void addGiftCertificateToCorrespondingOrderOfUserOrders(ResultSet resultSet, List<User> users, long currentId, long currentOrderId) throws SQLException {
+        if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+            GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+            users.stream().filter(user2 -> user2.getId() == currentId)
+                    .findAny().ifPresent(user2 -> user2.getOrders()
+                            .stream()
+                            .filter(order -> order.getId() == currentOrderId)
+                            .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate)));
+        }
+    }
+
+    private void addGiftCertificateToNewOrderOfUsersOrders(ResultSet resultSet, List<User> users, long currentId, long currentOrderId, Order newOrder) throws SQLException {
+        if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+            GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+            newOrder.getCertificates().add(giftCertificate);
+//            users.stream()
+//                    .filter(user1 -> user1.getId() == currentId)
+//                    .findAny().ifPresent(user1 -> user1.getOrders()
+//                            .stream()
+//                            .filter(order -> order.getId() == currentOrderId)
+//                            .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate)));
+        }
+    }
 }

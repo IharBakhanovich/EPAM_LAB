@@ -20,7 +20,7 @@ public class ColumnNames {
     public static final String TABLE_USER_COLUMN_ID = "userId";
     public static final String TABLE_USER_COLUMN_NICKNAME = "userNickName";
     public static final String TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON = "orderCertificate";
-    public static final String TABLE_USERORDER_COLUMN_ID = "orderId";
+    public static final String TABLE_USERORDER_COLUMN_ID = "userOrderId";
     public static final String TABLE_USERORDER_COLUMN_CREATE_DATE = "orderCreateDate";
     public static final String TABLE_USERORDER_COLUMN_NAME = "orderName";
 }
