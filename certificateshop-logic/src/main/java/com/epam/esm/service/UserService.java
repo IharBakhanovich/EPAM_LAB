@@ -1,5 +1,7 @@
 package com.epam.esm.service;
 
+import com.epam.esm.dto.OrderDto;
+import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 
 import java.util.List;
@@ -23,4 +25,28 @@ public interface UserService {
      * @return {@link List<User>}, that represents all the users in the system.
      */
     List<User> findAllUsers(Map<String, String> parameters);
+
+    /**
+     * Creates a new {@link User} in the system.
+     *
+     * @param user is the {@link User} to create.
+     */
+    User createUser(User user);
+
+    /**
+     * Returns a {@link User} by its id.
+     *
+     * @param userId is the id to find in the system.
+     */
+    User fetchUserById(long userId);
+
+    /**
+     * Return the price and the timestamp of a purchase of the user's {@link Order} with the {@param orderId},
+     * that was purchased by {@link User} with the {@param userId}.
+     *
+     * @param userId is the {@link User} ID to find by.
+     * @param orderId is the {@link Order} ID to find by.
+     * @return {@link OrderDto}
+     */
+    OrderDto findUserOrderByOrderIdCostAndTime(long userId, long orderId);
 }

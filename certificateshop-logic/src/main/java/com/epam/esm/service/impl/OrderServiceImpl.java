@@ -16,6 +16,7 @@ import com.epam.esm.validator.OrderValidator;
 import com.epam.esm.validator.TagValidator;
 import com.epam.esm.validator.UserValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,30 +65,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Creates a new {@link Order} in the system.
-     *
-     * @param order is the {@link Order} to create.
-     * @return created {@link Order}
-     */
-    @Override
-    public Order createOrder(Order order) {
-        return null;
-    }
-
-    private void checkForErrors(List<String> errorMessage, String errorMessageAfterCheckUserId, String errorMessageAfterCheckCertificateId) {
-        if (errorMessageAfterCheckUserId != null) {
-            errorMessage.add(errorMessageAfterCheckUserId);
-        }
-        if (errorMessageAfterCheckCertificateId != null) {
-            errorMessage.add(errorMessageAfterCheckCertificateId);
-        }
-        if (!errorMessage.isEmpty()) {
-            throw new MethodArgumentNotValidException(
-                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
-        }
-    }
-
-    /**
      * Orders a {@link GiftCertificate} to the {@link User}
      *
      * @param userId        is the id of the {@link User} that order a {@param giftCertificate}.
@@ -110,13 +87,26 @@ public class OrderServiceImpl implements OrderService {
         // creates new order
         List<GiftCertificate> certificates = new ArrayList<>();
         certificates.add(giftCertificate.get());
-        String name = generateUniqueOrderName();
+        String name = generateUniqueOrderName(user.get());
         Order newOrder = new Order(0, user.get(), LocalDateTime.now(), name, certificates);
         orderDao.save(newOrder);
         Order orderFromDB = orderDao.findByName(name).get();
-        orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(),
-                giftCertificate.get().getId(), giftCertificate.get());
+        orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(), giftCertificate.get().getId(),
+                giftCertificate.get(), giftCertificate.get().getPrice());
         return orderDao.findByName(name).get();
+    }
+
+    private void checkForErrors(List<String> errorMessage, String errorMessageAfterCheckUserId, String errorMessageAfterCheckCertificateId) {
+        if (errorMessageAfterCheckUserId != null) {
+            errorMessage.add(errorMessageAfterCheckUserId);
+        }
+        if (errorMessageAfterCheckCertificateId != null) {
+            errorMessage.add(errorMessageAfterCheckCertificateId);
+        }
+        if (!errorMessage.isEmpty()) {
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+        }
     }
 
     private String checkCertificateExistence(Optional<GiftCertificate> giftCertificate, long id) {
@@ -147,9 +137,10 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @SneakyThrows
-    public String generateUniqueOrderName() {
+    public String generateUniqueOrderName(User user) {
+        Gson gson = new Gson();
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString("Order_" + LocalDateTime.now());
+        return "Order_of_" + user.getNickName() + "_" + gson.toJson(LocalDateTime.now());
     }
 
     /**
@@ -184,5 +175,62 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> findAllOrders(Map<String, String> parameters) {
         return orderDao.findAll();
+    }
+
+    /**
+     * Creates a new {@link Order} in the system.
+     *
+     * @param order is the {@link Order} to create.
+     * @return created {@link Order}
+     */
+    @Override
+    public Order createOrder(Order order) {
+        List<String> errorMessage = new ArrayList<>();
+        checkUserIdAndCertificatesId(order, errorMessage);
+        if (order.getCertificates().size() == 1) {
+            orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId());
+        }
+        User userFromDatabase = userDao.findById(order.getUser().getId()).get();
+        String newOrderName = createNewOrder(order, userFromDatabase);
+        Order orderFromDB = orderDao.findByName(newOrderName).get();
+        for (GiftCertificate certificate : order.getCertificates()) {
+            GiftCertificate certificateToAddToOrder = certificateDAO.findById(certificate.getId()).get();
+            orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(), certificate.getId(),
+                    certificateToAddToOrder, certificateToAddToOrder.getPrice());
+        }
+        return orderDao.findByName(newOrderName).get();
+    }
+
+    private String createNewOrder(Order order, User user) {
+        String name = generateUniqueOrderName(user);
+        Order newOrder = new Order(0, order.getUser(), LocalDateTime.now(), name, order.getCertificates());
+        orderDao.save(newOrder);
+        return name;
+    }
+
+    private void checkUserIdAndCertificatesId(Order order, List<String> errorMessage) {
+        if (order.getUser().getId() == 0) {
+            errorMessage.add(translator.toLocale("USER_ID_SHOULD_NOT_BE_EMPTY"));
+        } else if (order.getUser().getId() < 0) {
+            errorMessage.add(
+                    String.format(translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"), "userId"));
+        } else if (!userDao.findById(order.getUser().getId()).isPresent()) {
+            errorMessage.add(String.format(translator.toLocale(
+                    "THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), order.getUser().getId()));
+        }
+        for (GiftCertificate certificate : order.getCertificates()) {
+            if (certificate.getId() == 0) {
+                errorMessage.add(translator.toLocale("CERTIFICATE_ID_SHOULD_NOT_BE_EMPTY"));
+            } else if (certificate.getId() < 0) {
+                errorMessage.add(String.format(
+                        translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"), "certificateId"));
+            } else if (!certificateDAO.findById(certificate.getId()).isPresent()) {
+                errorMessage.add(String.format(translator.toLocale(
+                        "THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), certificate.getId()));
+            }
+        }
+        if (!errorMessage.isEmpty()) {
+            throw new EntityNotFoundException(ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+        }
     }
 }

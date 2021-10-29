@@ -81,7 +81,9 @@ public class UserExtractor implements ResultSetExtractor<List<User>> {
     private Order createNewOrderFromResultSetLine(ResultSet resultSet) throws SQLException {
         return new Order(
                 resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID),
-                null,
+                new User(resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ID),
+                        resultSet.getString(ColumnNames.TABLE_USER_COLUMN_NICKNAME),
+                        new ArrayList<>()),
                 resultSet.getTimestamp(ColumnNames.TABLE_USERORDER_COLUMN_CREATE_DATE).toLocalDateTime(),
                 resultSet.getString(ColumnNames.TABLE_USERORDER_COLUMN_NAME),
                 new ArrayList<>()

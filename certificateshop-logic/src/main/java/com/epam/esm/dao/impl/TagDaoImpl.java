@@ -3,6 +3,7 @@ package com.epam.esm.dao.impl;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.model.impl.CertificateTag;
+import com.epam.esm.model.impl.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,18 @@ public class TagDaoImpl implements TagDao {
     private static final String FIND_ALL_TAGS_BY_CERTIFICATE_ID_SQL
             = "select tag.id as tagId, tag.name as tagName from tag, has_tag" +
             " where tag.id = has_tag.tagId and has_tag.certificateId = ?";
+    private static final String FIND_MOST_POPULAR_TAG_BY_THE_BEST_USER =
+            "SELECT tag.id as tagId, tag.name as tagName FROM tag" +
+                    " where id = (SELECT query3.tagIdAfterCount" +
+                    " FROM (SELECT ht.tagId as tagIdAfterCount, count(ht.tagId) as amountOfTag" +
+                    " FROM userorder as uo LEFT OUTER JOIN" +
+                    " (has_tag as ht LEFT OUTER JOIN userorder_certificate as uoc on ht.certificateId = uoc.certificateId)" +
+                    " ON uo.id = uoc.userOrderId" +
+                    " WHERE uo.userId = (SELECT query1.id" +
+                    " FROM (SELECT uo.userId as id, SUM(uoc.certificatePrice) as costAllCertificates" +
+                    " FROM userorder_certificate as uoc LEFT OUTER JOIN userorder as uo ON uoc.userOrderId = uo.id" +
+                    " GROUP BY userId ) as query1 LIMIT 1)" +
+                    " GROUP BY ht.tagId) as query3 LIMIT 1)";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -44,6 +57,24 @@ public class TagDaoImpl implements TagDao {
     private RowMapper<CertificateTag> certificateTagRowMapper;
 
     private TagDaoImpl() {
+    }
+
+    /**
+     * Sets {@link JdbcTemplate}.
+     *
+     * @param jdbcTemplate is the {@link JdbcTemplate} to set.
+     */
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Sets the {@link RowMapper<CertificateTag>}.
+     *
+     * @param certificateTagRowMapper is hte {@link RowMapper<CertificateTag>} to set.
+     */
+    public void setCertificateTagRowMapper(RowMapper<CertificateTag> certificateTagRowMapper) {
+        this.certificateTagRowMapper = certificateTagRowMapper;
     }
 
     /**
@@ -133,24 +164,6 @@ public class TagDaoImpl implements TagDao {
     }
 
     /**
-     * Sets {@link JdbcTemplate}.
-     *
-     * @param jdbcTemplate is the {@link JdbcTemplate} to set.
-     */
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    /**
-     * Sets the {@link RowMapper<CertificateTag>}.
-     *
-     * @param certificateTagRowMapper is hte {@link RowMapper<CertificateTag>} to set.
-     */
-    public void setCertificateTagRowMapper(RowMapper<CertificateTag> certificateTagRowMapper) {
-        this.certificateTagRowMapper = certificateTagRowMapper;
-    }
-
-    /**
      * Finds {@link Optional<CertificateTag>} in the database by the id of the {@link CertificateTag}.
      *
      * @param name is the {@link String} to find.
@@ -159,5 +172,16 @@ public class TagDaoImpl implements TagDao {
     @Override
     public Optional<CertificateTag> findByName(String name) {
         return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, certificateTagRowMapper, name).stream().findFirst();
+    }
+
+    /**
+     * Finds the most popular {@link CertificateTag} of the {@link User}
+     * with the biggest sum of order price.
+     *
+     * @return {@link Optional<CertificateTag>}.
+     */
+    @Override
+    public Optional<CertificateTag> findTheMostPopularTagOfTheBestUser() {
+        return jdbcTemplate.query(FIND_MOST_POPULAR_TAG_BY_THE_BEST_USER, certificateTagRowMapper).stream().findFirst();
     }
 }

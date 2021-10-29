@@ -5,6 +5,7 @@ import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,7 +64,9 @@ public interface OrderDao extends Dao<Order> {
      *
      * @param orderId         is the id of the {@link Order} to save.
      * @param certificateId   is the id of the {@link GiftCertificate} to save.
-     * @param giftCertificate is the id of the {@link GiftCertificate} to save in JSON format.
+     * @param giftCertificate is the {@link GiftCertificate} to save in JSON format.
+     * @param certificatePrice is the {@link BigDecimal} to save as a price of the {@param giftCertificate}.
      */
-    void saveIdsInUserorder_certificateTable(long orderId, long certificateId, GiftCertificate giftCertificate);
+    void saveIdsInUserorder_certificateTable(long orderId, long certificateId,
+                                             GiftCertificate giftCertificate, BigDecimal certificatePrice);
 }

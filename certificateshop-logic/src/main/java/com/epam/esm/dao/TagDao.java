@@ -71,4 +71,12 @@ public interface TagDao extends Dao<CertificateTag> {
      * @param tagId is the id to remove by.
      */
     void deleteFromHasTagByTagId(long tagId);
+
+    /**
+     * Finds the most popular {@link CertificateTag} of the {@link com.epam.esm.model.impl.User}
+     * with the biggest sum of order price.
+     *
+     * @return {@link Optional<CertificateTag>}.
+     */
+    Optional<CertificateTag> findTheMostPopularTagOfTheBestUser();
 }

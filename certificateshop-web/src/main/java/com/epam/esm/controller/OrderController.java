@@ -1,10 +1,10 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.service.OrderService;
-import com.epam.esm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +31,7 @@ public class OrderController {
     }
 
     /**
-     * The method that realises the 'POST /users/{userId}/orders' query.
+     * The method that realises the 'POST /users/{userId}/{certificateId}' query.
      *
      * @param userId is the ID of the {@link User} to find.
      * @return {@link List <Order>} that belong ti the {@link User} with the id equals userId.
@@ -39,7 +39,7 @@ public class OrderController {
     @PostMapping(value = "/{userId}/{certificateId}")
     @ResponseStatus(HttpStatus.CREATED)
     public Order certificate(@PathVariable("userId") long userId,
-                                   @PathVariable("certificateId") long certificateId) {
+                             @PathVariable("certificateId") long certificateId) {
         return orderService.orderCertificate(userId, certificateId);
     }
 
@@ -75,5 +75,17 @@ public class OrderController {
     @ResponseStatus(HttpStatus.OK)
     public List<Order> fetchAllOrders(@RequestParam Map<String, String> parameters) {
         return orderService.findAllOrders(parameters);
+    }
+
+    /**
+     * The method that realises the 'POST /orders' query.
+     *
+     * @param order is the {@link CertificateTag} to create.
+     * @return the created {@link CertificateTag}.
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Order addNewOrder(@RequestBody Order order) {
+        return orderService.createOrder(order);
     }
 }

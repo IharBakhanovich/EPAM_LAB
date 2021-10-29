@@ -1,5 +1,7 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dto.OrderDto;
+import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
@@ -43,6 +45,30 @@ public class UserController {
     }
 
     /**
+     * The method that realises the 'POST /users' query.
+     *
+     * @param user is the {@link User} to create.
+     * @return the created {@link User}.
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public User addNewUser(@RequestBody User user) {
+        return userService.createUser(user);
+    }
+
+    /**
+     * The method that realises the 'GET /users/{userId}' query.
+     *
+     * @param userId is the ID of the {@link CertificateTag} to find.
+     * @return {@link CertificateTag} with the tagId if such an id exists in the system.
+     */
+    @GetMapping(value = "/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public User getUserById(@PathVariable("userId") long userId) {
+        return userService.fetchUserById(userId);
+    }
+
+    /**
      * The method that realises the 'GET /users' query.
      *
      * @param parameters: there are following parameters, which can be applied to the query:
@@ -62,5 +88,17 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public List<User> fetchAllUsers(@RequestParam Map<String, String> parameters) {
         return userService.findAllUsers(parameters);
+    }
+
+    /**
+     * The method that realises the 'GET /users/{userId}/orders/{orderId}/costAndTime' query.
+     *
+     * @param userId is the ID of the {@link User} to find.
+     * @return {@link List<Order>} that belong ti the {@link User} with the id equals userId.
+     */
+    @GetMapping(value = "/{userId}/orders/{orderId}/costAndTime")
+    @ResponseStatus(HttpStatus.OK)
+    public OrderDto certificate(@PathVariable("userId") long userId, @PathVariable("orderId") long orderId) {
+        return userService.findUserOrderByOrderIdCostAndTime(userId, orderId);
     }
 }

@@ -3,14 +3,13 @@ package com.epam.esm.dao.impl;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +27,8 @@ public class OrderDaoImpl implements OrderDao {
     private static final String INSERT_ENTITY_SQL
             = "insert into userorder (userId, create_date, name) values (?, ?, ?)";
     private static final String INSERT_VALUES_IN_USERORDER_CERTIFICATE_TABLE_SQL
-            = "insert into userorder_certificate (userOrderId, certificateId, certificateInJSON) values (?, ?, ?)";
+            = "insert into userorder_certificate" +
+            " (userOrderId, certificateId, certificateInJSON, certificatePrice) values (?, ?, ?, ?)";
     private static final String FIND_ENTITY_BY_ID_SQL
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
@@ -47,16 +47,27 @@ public class OrderDaoImpl implements OrderDao {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
     @Autowired
     private ResultSetExtractor<List<Order>> orderExtractor;
 
     public OrderDaoImpl() {
     }
 
+    /**
+     * The setter of the {@link JdbcTemplate}.
+     *
+     * @param jdbcTemplate is the {@link JdbcTemplate} to set.
+     */
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * The setter of the {@link ResultSetExtractor<List<Order>>}.
+     *
+     * @param orderExtractor is the {@link ResultSetExtractor<List<Order>>} to set.
+     */
     public void setOrderExtractor(ResultSetExtractor<List<Order>> orderExtractor) {
         this.orderExtractor = orderExtractor;
     }
@@ -134,12 +145,15 @@ public class OrderDaoImpl implements OrderDao {
      *
      * @param orderId         is the id of the {@link Order} to save.
      * @param certificateId   is the id of the {@link GiftCertificate} to save.
-     * @param giftCertificate is the id of the {@link GiftCertificate} to save in JSON format.
+     * @param giftCertificate is the {@link GiftCertificate} to save in JSON format.
+     * @param certificatePrice is the {@link BigDecimal} to save as a price of the {@param giftCertificate}.
      */
     @Override
-    public void saveIdsInUserorder_certificateTable(long orderId, long certificateId, GiftCertificate giftCertificate) {
+    public void saveIdsInUserorder_certificateTable(long orderId, long certificateId,
+                                                    GiftCertificate giftCertificate, BigDecimal certificatePrice) {
         Gson gson = new Gson();
         String certificateInJson = gson.toJson(giftCertificate);
-        jdbcTemplate.update(INSERT_VALUES_IN_USERORDER_CERTIFICATE_TABLE_SQL, orderId, certificateId, certificateInJson);
+        jdbcTemplate.update(INSERT_VALUES_IN_USERORDER_CERTIFICATE_TABLE_SQL,
+                orderId, certificateId, certificateInJson, certificatePrice);
     }
 }

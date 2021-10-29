@@ -7,6 +7,7 @@ import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
+import com.epam.esm.model.impl.User;
 import com.epam.esm.service.TagService;
 import com.epam.esm.validator.TagValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,5 +160,16 @@ public class TagServiceImpl implements TagService {
         } else {
             return certificateTag.get();
         }
+    }
+
+    /**
+     * Returns the most popular {@link CertificateTag} of the {@link User}
+     * with the biggest sum of order price.
+     *
+     * @return {@link CertificateTag}
+     */
+    @Override
+    public CertificateTag mostPopularTagOfTheBestUser() {
+        return tagDAO.findTheMostPopularTagOfTheBestUser().orElse(null);
     }
 }

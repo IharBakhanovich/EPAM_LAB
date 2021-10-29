@@ -5,6 +5,7 @@ import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.model.impl.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -50,6 +51,33 @@ public class UserDaoImpl implements UserDao {
     private UserExtractor userExtractor;
 
     public UserDaoImpl() {
+    }
+
+    /**
+     * The setter of the {@link JdbcTemplate}.
+     *
+     * @param jdbcTemplate is the {@link JdbcTemplate} to set.
+     */
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * The setter of the {@link RowMapper<User>}.
+     *
+     * @param userRowMapper is the {@link RowMapper<User>} to set.
+     */
+    public void setUserRowMapper(RowMapper<User> userRowMapper) {
+        this.userRowMapper = userRowMapper;
+    }
+
+    /**
+     * The setter of the {@link ResultSetExtractor<List<User>>}.
+     *
+     * @param userExtractor is the {@link ResultSetExtractor<List<User>>} to set.
+     */
+    public void setUserExtractor(UserExtractor userExtractor) {
+        this.userExtractor = userExtractor;
     }
 
     /**
@@ -113,17 +141,5 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Optional<User> findByName(String nickName) {
         return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, userExtractor, nickName).stream().findFirst();
-    }
-
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    public void setUserRowMapper(RowMapper<User> userRowMapper) {
-        this.userRowMapper = userRowMapper;
-    }
-
-    public void setUserExtractor(UserExtractor userExtractor) {
-        this.userExtractor = userExtractor;
     }
 }

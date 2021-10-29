@@ -97,6 +97,15 @@ public class CertificateDaoImpl implements CertificateDao {
     }
 
     /**
+     * The setter of the {@link RowMapper<GiftCertificate>}.
+     *
+     * @param certificateMapper is the {@link RowMapper<GiftCertificate>} to set.
+     */
+    public void setCertificateMapper(RowMapper<GiftCertificate> certificateMapper) {
+        this.certificateMapper = certificateMapper;
+    }
+
+    /**
      * Returns all the {@link GiftCertificate}s in the database.
      *
      * @return {@link List<GiftCertificate>}.

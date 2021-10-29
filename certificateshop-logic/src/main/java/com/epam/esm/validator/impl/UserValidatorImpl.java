@@ -50,7 +50,7 @@ public class UserValidatorImpl implements UserValidator {
     }
 
     private void checkEmptyFields(User user, List<String> errorMessage) {
-        if (user.getNickName() == null) {
+        if (user.getNickName() == null || user.getNickName().trim().equals("")) {
             errorMessage.add(translator.toLocale("THE_NICKNAME_FIELD_SHOULD_NOT_BE_EMPTY"));
         }
     }

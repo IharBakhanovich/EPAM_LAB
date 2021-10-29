@@ -1,6 +1,5 @@
 package com.epam.esm.service;
 
-import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
@@ -34,7 +33,7 @@ public interface OrderService {
      *
      * @return generated name, that is unique in the system.
      */
-    String generateUniqueOrderName();
+    String generateUniqueOrderName(User user);
 
     /**
      * Returns a {@link Order} by its id.
