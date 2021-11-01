@@ -1,13 +1,21 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * API to work with {@link GiftCertificate}s of the GiftCertificatesShop.
@@ -45,8 +53,23 @@ public class GiftCertificateController {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<GiftCertificate> certificates(@RequestParam Map<String, String> parameters) {
-        return certificateService.findAllCertificates(parameters);
+    public CollectionModel<EntityModel<GiftCertificate>> certificates(@RequestParam Map<String, String> parameters) {
+        List<GiftCertificate> certificates = certificateService.findAllCertificates(parameters);
+        List<EntityModel<GiftCertificate>> modelFromCertificates = certificates.stream()
+                .map(order -> EntityModel.of(order,
+                        linkTo(methodOn(GiftCertificateController.class).addNewCertificate(certificates.get(0)))
+                                .withRel("Creates a new certificate (params: certificate): POST"),
+                        linkTo(methodOn(GiftCertificateController.class).certificate(certificates.get(0).getId()))
+                                .withRel("Removes certificate from the system (params: certificateId): DELETE")
+                ))
+                .collect(Collectors.toList());
+        return CollectionModel.of(modelFromCertificates,
+                linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))
+                        .withRel("Fetches all users: GET"),
+                linkTo(methodOn(OrderController.class).fetchAllOrders())
+                        .withRel("Fetches all orders: GET"),
+                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"),
+                linkTo(methodOn(GiftCertificateController.class).certificates(parameters)).withSelfRel());
     }
 
     /**
@@ -57,8 +80,15 @@ public class GiftCertificateController {
      */
     @GetMapping(value = "/{certificateId}")
     @ResponseStatus(HttpStatus.OK)
-    public GiftCertificate certificate(@PathVariable("certificateId") long certificateId) {
-        return certificateService.findCertificateById(certificateId);
+    public EntityModel<GiftCertificate> certificate(@PathVariable("certificateId") long certificateId) {
+        GiftCertificate giftCertificate = certificateService.findCertificateById(certificateId);
+        EntityModel<GiftCertificate> certificateEntityModel
+                = EntityModel.of(giftCertificate, linkTo(methodOn(GiftCertificateController.class)
+                        .certificate(certificateId)).withRel("Removes the certificate: DELETE"));
+        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).addNewCertificate(new GiftCertificate()))
+                .withRel("Creates new certificates (inputs: new certificate object): POST"));
+        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(certificateId)).withSelfRel());
+        return certificateEntityModel;
     }
 
     /**
@@ -80,8 +110,16 @@ public class GiftCertificateController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public GiftCertificate addNewCertificate(@RequestBody GiftCertificate newGiftCertificate) {
-        return certificateService.createCertificate(newGiftCertificate);
+    public EntityModel<GiftCertificate> addNewCertificate(@RequestBody GiftCertificate newGiftCertificate) {
+        GiftCertificate giftCertificate = certificateService.createCertificate(newGiftCertificate);
+        EntityModel<GiftCertificate> certificateEntityModel
+                = EntityModel.of(giftCertificate, linkTo(methodOn(GiftCertificateController.class)
+                .updateGiftCertificate(giftCertificate.getId(), giftCertificate))
+                .withRel("Updates the certificate (inputs: certificateId, certificate object): PUT"));
+        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(giftCertificate.getId()))
+                .withRel("Fetches and removes a certificate: GET, DELETE"));
+        return certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class)
+                .addNewCertificate(new GiftCertificate())).withSelfRel());
     }
 
     /**
@@ -94,8 +132,16 @@ public class GiftCertificateController {
      */
     @PutMapping(value = "/{certificateId}")
     @ResponseStatus(HttpStatus.OK)
-    public GiftCertificate updateGiftCertificate(@PathVariable("certificateId") long certificateId,
+    public EntityModel<GiftCertificate> updateGiftCertificate(@PathVariable("certificateId") long certificateId,
                                                  @RequestBody GiftCertificate giftCertificate) {
-        return certificateService.updateCertificate(certificateId, giftCertificate);
+        GiftCertificate certificate = certificateService.updateCertificate(certificateId, giftCertificate);
+        EntityModel<GiftCertificate> certificateEntityModel
+                = EntityModel.of(certificate, linkTo(methodOn(GiftCertificateController.class)
+                .addNewCertificate(new GiftCertificate()))
+                .withRel("Creates new certificates (inputs: new certificate object): POST"));
+        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(giftCertificate.getId()))
+                .withRel("Fetches and removes a certificate: GET, DELETE"));
+        return certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class)
+                .updateGiftCertificate(certificate.getId(), certificate)).withSelfRel());
     }
 }

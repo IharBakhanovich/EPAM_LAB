@@ -46,8 +46,8 @@ public class TagDaoImpl implements TagDao {
                     " WHERE uo.userId = (SELECT query1.id" +
                     " FROM (SELECT uo.userId as id, SUM(uoc.certificatePrice) as costAllCertificates" +
                     " FROM userorder_certificate as uoc LEFT OUTER JOIN userorder as uo ON uoc.userOrderId = uo.id" +
-                    " GROUP BY userId ) as query1 LIMIT 1)" +
-                    " GROUP BY ht.tagId) as query3 LIMIT 1)";
+                    " GROUP BY userId ORDER BY costAllCertificates DESC) as query1 LIMIT 1)" +
+                    " GROUP BY ht.tagId ORDER BY amountOfTag DESC) as query3 LIMIT 1)";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

@@ -64,13 +64,6 @@
                 <version>${mysql.version}</version>
             </dependency>
 
-            <!-- HATEOAS-->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-hateoas</artifactId>
-                <version>${spring-boot-starter-hateoas.version}</version>
-            </dependency>
-
 <!--            &lt;!&ndash; ConnectionPool &ndash;&gt;-->
 <!--            <dependency>-->
 <!--                <groupId>com.zaxxer</groupId>-->
@@ -257,6 +250,13 @@
 <!--            <version>${junit-vintage-engine.version}</version>-->
 <!--            <scope>test</scope>-->
 <!--        </dependency>-->
+
+        <!-- HATEOAS-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+            <version>${spring-boot-starter-hateoas.version}</version>
+        </dependency>
 
     </dependencies>
 

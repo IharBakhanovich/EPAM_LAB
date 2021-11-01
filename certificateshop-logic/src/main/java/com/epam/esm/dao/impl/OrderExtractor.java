@@ -47,29 +47,31 @@ public class OrderExtractor implements ResultSetExtractor<List<Order>> {
 
         while (resultSet.next()) {
             final long currentId = resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID);
-            if (orders.stream().anyMatch(order -> order.getId() == currentId)) {
-                if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-                    GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-                    orders.stream()
-                            .filter(order -> order.getId() == currentId)
-                            .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
-                }
-            } else {
-                List<GiftCertificate> allCertificatesThisOrder = new ArrayList<GiftCertificate>();
-                User userThisOrder = userRowMapper.mapRow(resultSet, resultSet.getRow());
-                Order newOrder = new Order(
-                        resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID),
-                        userThisOrder,
-                        resultSet.getTimestamp(ColumnNames.TABLE_USERORDER_COLUMN_CREATE_DATE).toLocalDateTime(),
-                        resultSet.getString(ColumnNames.TABLE_USERORDER_COLUMN_NAME),
-                        allCertificatesThisOrder
-                );
-                orders.add(newOrder);
-                if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-                    GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-                    orders.stream()
-                            .filter(order -> order.getId() == currentId)
-                            .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
+            if (currentId != 0) {
+                if (orders.stream().anyMatch(order -> order.getId() == currentId)) {
+                    if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+                        orders.stream()
+                                .filter(order -> order.getId() == currentId)
+                                .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
+                    }
+                } else {
+                    List<GiftCertificate> allCertificatesThisOrder = new ArrayList<GiftCertificate>();
+                    User userThisOrder = userRowMapper.mapRow(resultSet, resultSet.getRow());
+                    Order newOrder = new Order(
+                            resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID),
+                            userThisOrder,
+                            resultSet.getTimestamp(ColumnNames.TABLE_USERORDER_COLUMN_CREATE_DATE).toLocalDateTime(),
+                            resultSet.getString(ColumnNames.TABLE_USERORDER_COLUMN_NAME),
+                            allCertificatesThisOrder
+                    );
+                    orders.add(newOrder);
+                    if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+                        orders.stream()
+                                .filter(order -> order.getId() == currentId)
+                                .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
+                    }
                 }
             }
         }

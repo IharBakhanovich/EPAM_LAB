@@ -2,16 +2,22 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.OrderDto;
 import com.epam.esm.model.impl.CertificateTag;
-import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 
 /**
@@ -40,8 +46,26 @@ public class UserController {
      */
     @GetMapping(value = "/{userId}/orders")
     @ResponseStatus(HttpStatus.OK)
-    public List<Order> certificate(@PathVariable("userId") long userId) {
-        return userService.findUserById(userId).getOrders();
+    public CollectionModel<EntityModel<Order>> userOrders(@PathVariable("userId") long userId) {
+
+        List<Order> orders = userService.findUserById(userId).getOrders();
+        List<EntityModel<Order>> modelFromOrders = orders.stream().map(order -> EntityModel.of(order,
+                        linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).withSelfRel(),
+                        linkTo(methodOn(UserController.class).getUserById(userId))
+                                .withRel("Fetches this user: GET"),
+                        linkTo(methodOn(UserController.class).addNewUser(new User()))
+                                .withRel("Adds new user in the system: POST"),
+                linkTo(methodOn(OrderController.class)
+                        .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
+                        .withRel("User can order a certificate (params: userId/certificateId): POST")))
+                .collect(Collectors.toList());
+        return CollectionModel.of(modelFromOrders, linkTo(methodOn(UserController.class).userOrders(userId)).withSelfRel(),
+                linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))
+                        .withRel("Fetches all users: GET"),
+                linkTo(methodOn(OrderController.class).fetchAllOrders()).withRel("Fetches all orders: GET"),
+                linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
+                        .withRel("Fetches all certificates: GET"),
+                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"));
     }
 
     /**
@@ -64,8 +88,20 @@ public class UserController {
      */
     @GetMapping(value = "/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public User getUserById(@PathVariable("userId") long userId) {
-        return userService.fetchUserById(userId);
+    public EntityModel<User> getUserById(@PathVariable("userId") long userId) {
+        User user = userService.fetchUserById(userId);
+        EntityModel<User> userEntityModel = EntityModel.of(user, linkTo(methodOn(UserController.class)
+                .userOrders(userId)).withRel("All certificates this user: GET"));
+        userEntityModel.add(linkTo(methodOn(UserController.class)
+                .costAndTimeOfUsersOrder(user.getId(), user.getOrders().get(0).getId()))
+                .withRel("Cost and ordered time of the first user order (inputs: userId, orderId): GET"));
+        userEntityModel.add(linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<>()))
+                .withRel("Fetches all users in the system: GET"));
+        userEntityModel.add(linkTo(methodOn(OrderController.class)
+                .orderCertificate(userId, user.getOrders().get(0).getCertificates().get(0).getId()))
+                .withRel("User can order a certificate (params: userId/certificateId): POST"));
+        userEntityModel.add(linkTo(methodOn(UserController.class).getUserById(userId)).withSelfRel());
+        return  userEntityModel;
     }
 
     /**
@@ -86,8 +122,18 @@ public class UserController {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<User> fetchAllUsers(@RequestParam Map<String, String> parameters) {
-        return userService.findAllUsers(parameters);
+    public CollectionModel<EntityModel<User>> fetchAllUsers(@RequestParam Map<String, String> parameters) {
+        List<User> users = userService.findAllUsers(parameters);
+        List<EntityModel<User>> moderFromOrders = users.stream().map(user -> EntityModel.of(user,
+                        linkTo(methodOn(UserController.class).getUserById(user.getId())).withSelfRel(),
+                        linkTo(methodOn(UserController.class).userOrders(user.getId()))
+                                .withRel("Fetches all orders this user: GET")))
+                .collect(Collectors.toList());
+        return CollectionModel.of(moderFromOrders, linkTo(methodOn(OrderController.class).fetchAllOrders()).withSelfRel(),
+                linkTo(methodOn(OrderController.class).fetchAllOrders()).withRel("Fetches all orders: GET"),
+                linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
+                        .withRel("Fetches all certificates: GET"),
+                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"));
     }
 
     /**
@@ -98,7 +144,17 @@ public class UserController {
      */
     @GetMapping(value = "/{userId}/orders/{orderId}/costAndTime")
     @ResponseStatus(HttpStatus.OK)
-    public OrderDto certificate(@PathVariable("userId") long userId, @PathVariable("orderId") long orderId) {
-        return userService.findUserOrderByOrderIdCostAndTime(userId, orderId);
+    public EntityModel<OrderDto> costAndTimeOfUsersOrder(@PathVariable("userId") long userId,
+                                                         @PathVariable("orderId") long orderId) {
+        OrderDto orderDto = userService.findUserOrderByOrderIdCostAndTime(userId, orderId);
+        EntityModel<OrderDto> orderDtoEntityModel = EntityModel.of(orderDto, linkTo(methodOn(OrderController.class)
+                        .fetchOrderById(orderId)).withRel("Fetches all details of this order(inputs: orderId): GET"));
+        orderDtoEntityModel.add(linkTo(methodOn(UserController.class).getUserById(userId))
+                .withRel("Fetches this user (inputs: userId): GET"));
+        orderDtoEntityModel.add(linkTo(methodOn(UserController.class).userOrders(userId))
+                .withRel("Fetches all user's orders: GET"));
+
+        return orderDtoEntityModel.add(linkTo(methodOn(UserController.class).costAndTimeOfUsersOrder(userId, orderId))
+                .withSelfRel());
     }
 }

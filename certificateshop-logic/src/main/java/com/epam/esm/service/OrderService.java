@@ -48,5 +48,5 @@ public interface OrderService {
      * @param parameters is all the query parameters in the URI.
      * @return {@link List<Order>}, that represents all the orders in the system.
      */
-    List<Order> findAllOrders(Map<String, String> parameters);
+    List<Order> findAllOrders();
 }

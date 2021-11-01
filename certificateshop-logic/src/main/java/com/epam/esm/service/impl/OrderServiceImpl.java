@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
      * @return {@link List<Order>}, that represents all the orders in the system.
      */
     @Override
-    public List<Order> findAllOrders(Map<String, String> parameters) {
+    public List<Order> findAllOrders() {
         return orderDao.findAll();
     }
 

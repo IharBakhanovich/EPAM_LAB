@@ -3,10 +3,16 @@ package com.epam.esm.controller;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * API to work with {@link CertificateTag}s of the GiftCertificatesShop.
@@ -33,8 +39,15 @@ public class CertificateTagController {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<CertificateTag> tags() {
-        return tagService.findAllCertificateTags();
+    public CollectionModel<EntityModel<CertificateTag>> tags() {
+        List<CertificateTag> tags = tagService.findAllCertificateTags();
+        List<EntityModel<CertificateTag>> moderFromOrders = tags.stream().map(tag -> EntityModel.of(tag,
+                        linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
+                                .withRel("Fetches and removes a tag by tagId: GET, DELETE"),
+                        linkTo(methodOn(CertificateTagController.class).updateCertificateTag(tag.getId(), tag))
+                                .withRel("Updates a tag (params: tagId, tag): PUT")))
+                .collect(Collectors.toList());
+        return CollectionModel.of(moderFromOrders);
     }
 
     /**
@@ -45,8 +58,17 @@ public class CertificateTagController {
      */
     @GetMapping(value = "/{tagId}")
     @ResponseStatus(HttpStatus.OK)
-    public CertificateTag tag(@PathVariable("tagId") long tagId) {
-        return tagService.findCertificateTagById(tagId);
+    public EntityModel<CertificateTag> tag(@PathVariable("tagId") long tagId) {
+        CertificateTag tag = tagService.findCertificateTagById(tagId);
+        EntityModel<CertificateTag> orderEntityModel
+                = EntityModel.of(tag, linkTo(methodOn(StatisticController.class)
+                .mostPopularTagOfTheBestUser())
+                .withRel("Fetches the most popular tag of the user with the highest sum of all orders"));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
+                .withRel("Creates new tag (inputs: new Tag object): POST"));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
+                .withRel("Removes a tag: DELETE"));
+        return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId())).withSelfRel());
     }
 
     /**
@@ -68,8 +90,15 @@ public class CertificateTagController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CertificateTag addNewTag(@RequestBody CertificateTag certificateTag) {
-        return tagService.createCertificateTag(certificateTag);
+    public EntityModel<CertificateTag> addNewTag(@RequestBody CertificateTag certificateTag) {
+        CertificateTag tag = tagService.createCertificateTag(certificateTag);
+        EntityModel<CertificateTag> orderEntityModel
+                = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
+                .updateCertificateTag(tag.getId(), tag)).withRel("Updates the tag (inputs: tagId): PUT"));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
+                .withRel("Fetches and removes a tag: GET, DELETE"));
+        return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
+                .withSelfRel());
     }
 
     /**
@@ -82,8 +111,16 @@ public class CertificateTagController {
      */
     @PutMapping(value = "/{tagId}")
     @ResponseStatus(HttpStatus.OK)
-    public CertificateTag updateCertificateTag(@PathVariable("tagId") long tagId,
-                                               @RequestBody CertificateTag certificateTag) {
-        return tagService.updateCertificateTag(tagId, certificateTag);
+    public EntityModel<CertificateTag> updateCertificateTag(@PathVariable("tagId") long tagId,
+                                                            @RequestBody CertificateTag certificateTag) {
+
+        CertificateTag tag = tagService.updateCertificateTag(tagId, certificateTag);
+        EntityModel<CertificateTag> orderEntityModel
+                = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
+                .tag(tagId)).withRel("Fetches and removes a tag by ID (inputs: tagId): GET"));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
+                .withRel("Creates new tag (inputs: new Tag object): POST"));
+        return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class)
+                .updateCertificateTag(tagId, certificateTag)).withSelfRel());
     }
 }
