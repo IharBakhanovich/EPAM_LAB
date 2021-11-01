@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.dto.OrderDto;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.Order;
@@ -49,6 +50,9 @@ public class UserController {
     public CollectionModel<EntityModel<Order>> userOrders(@PathVariable("userId") long userId) {
 
         List<Order> orders = userService.findUserById(userId).getOrders();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("offset", "0");
+        parameters.put("limit", ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         List<EntityModel<Order>> modelFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).withSelfRel(),
                         linkTo(methodOn(UserController.class).getUserById(userId))
@@ -65,7 +69,7 @@ public class UserController {
                 linkTo(methodOn(OrderController.class).fetchAllOrders()).withRel("Fetches all orders: GET"),
                 linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
                         .withRel("Fetches all certificates: GET"),
-                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"));
+                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
     }
 
     /**
@@ -133,7 +137,7 @@ public class UserController {
                 linkTo(methodOn(OrderController.class).fetchAllOrders()).withRel("Fetches all orders: GET"),
                 linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
                         .withRel("Fetches all certificates: GET"),
-                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"));
+                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
     }
 
     /**

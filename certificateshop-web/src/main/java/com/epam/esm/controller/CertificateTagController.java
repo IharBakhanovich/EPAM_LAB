@@ -1,6 +1,8 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
+import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -39,15 +42,27 @@ public class CertificateTagController {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CollectionModel<EntityModel<CertificateTag>> tags() {
-        List<CertificateTag> tags = tagService.findAllCertificateTags();
-        List<EntityModel<CertificateTag>> moderFromOrders = tags.stream().map(tag -> EntityModel.of(tag,
+    public CollectionModel<EntityModel<CertificateTag>> tags(@RequestParam Map<String, String> parameters) {
+        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
+        List<CertificateTag> tags = tagService.findAllCertificateTags(parameters);
+
+        long offset = Long.parseLong(parameters.get("offset"));
+        long limit = Long.parseLong(parameters.get("limit"));
+        Map<String, String> paramsNext = ColumnNames.createNextParameters(tags, offset, limit);
+        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(tags, offset, limit);
+        List<EntityModel<CertificateTag>> modelFromOrders = tags.stream().map(tag -> EntityModel.of(tag,
                         linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
                                 .withRel("Fetches and removes a tag by tagId: GET, DELETE"),
                         linkTo(methodOn(CertificateTagController.class).updateCertificateTag(tag.getId(), tag))
                                 .withRel("Updates a tag (params: tagId, tag): PUT")))
                 .collect(Collectors.toList());
-        return CollectionModel.of(moderFromOrders);
+        CollectionModel<EntityModel<CertificateTag>> collectionModel = CollectionModel.of(modelFromOrders);
+        collectionModel.add(linkTo(methodOn(CertificateTagController.class).tags(paramsNext)).
+                        withRel("Fetches NEXT PAGE of tags: GET"),
+                linkTo(methodOn(GiftCertificateController.class).certificates(paramsPrev)).
+                        withRel("Fetches PREVIOUS PAGE of tags: GET"),
+                linkTo(methodOn(GiftCertificateController.class).certificates(parameters)).withSelfRel());
+        return collectionModel;
     }
 
     /**

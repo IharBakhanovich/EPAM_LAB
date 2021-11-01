@@ -20,6 +20,18 @@ public enum HandlerType {
                     .collect(Collectors.toList());
         }
     },
+    BY_OFFSET("offset") {
+        @Override
+        public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
+            return certificates;
+        }
+    },
+    BY_LIMIT("limit") {
+        @Override
+        public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
+            return certificates;
+        }
+    },
     BY_PART_NAME("part_cert_name") {
         @Override
         public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {

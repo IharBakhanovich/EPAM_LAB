@@ -16,9 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -55,8 +53,11 @@ public class TagServiceTest {
         List<CertificateTag> certificateTags = new ArrayList<>();
         certificateTags.add(certificateTag);
         certificateTags.add(certificateTag1);
-        given(tagDAO.findAll()).willReturn(certificateTags);
-        List<CertificateTag> expectedTags = tagService.findAllCertificateTags();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("offset", "0");
+        parameters.put("limit", "10");
+        given(tagDAO.findAllPagination(0, 10)).willReturn(certificateTags);
+        List<CertificateTag> expectedTags = tagService.findAllCertificateTags(parameters);
         Assertions.assertEquals(certificateTags, expectedTags);
     }
 

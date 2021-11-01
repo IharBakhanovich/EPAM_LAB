@@ -20,7 +20,16 @@ public interface CertificateDao extends Dao<GiftCertificate> {
     /**
      * Finds all {@link GiftCertificate} entity in the database.
      *
+     * @param offset is the offset query parameter.
+     * @param limit  is the limit query parameter.
      * @return List of the {@link GiftCertificate} objects.
+     */
+    List<GiftCertificate> findAllPagination(long offset, long limit);
+
+    /**
+     * Returns all the {@link GiftCertificate}s in the database.
+     *
+     * @return {@link List<GiftCertificate>}.
      */
     @Override
     List<GiftCertificate> findAll();

@@ -113,14 +113,32 @@ public class CertificateServiceImpl implements CertificateService {
      */
     @Override
     public List<GiftCertificate> findAllCertificates(Map<String, String> parameters) {
-        List<GiftCertificate> giftCertificates = certificateDAO.findAll();
+        List<String> errorMessage = new ArrayList<>();
+        long offset = Long.parseLong(parameters.get("offset"));
+        long limit = Long.parseLong(parameters.get("limit"));
+        checkLimitAndOffset(errorMessage, offset, limit);
+        List<GiftCertificate> giftCertificates = new ArrayList<>();
+        giftCertificates = certificateDAO.findAllPagination(offset, limit);
         for (Map.Entry<String, String> parameter : parameters.entrySet()) {
             giftCertificates = Arrays.stream(HandlerType.values())
-                    .filter(handlerType -> handlerType.getParameterName().equals(parameter.getKey()))
+                    .filter(handlerType -> handlerType.getParameterName().equals(parameter.getKey().toLowerCase()))
                     .findAny().orElseThrow(RuntimeException::new)
                     .handle(giftCertificates, parameter.getValue());
         }
         return giftCertificates;
+    }
+
+    private void checkLimitAndOffset(List<String> errorMessage, long offset, long limit) {
+        if (offset < 0) {
+            errorMessage.add(translator.toLocale("THE_OFFSET_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (limit < 0) {
+            errorMessage.add(translator.toLocale("THE_LIMIT_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (!errorMessage.isEmpty()) {
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
+        }
     }
 
     /**

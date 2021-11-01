@@ -1,6 +1,6 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.model.impl.CertificateTag;
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,27 +49,43 @@ public class GiftCertificateController {
      *                    to sort in normal order, DESC - the sort order is reversed;
      *                    -  sortByDate=asc/desc is the parameter to sort all the certificates by CreateDate.
      *                    ASC means to sort in normal order, DESC - the sort order is reversed.
+     *                    -  offset=0/MAX_VALUE is the long to pass records from database.
+     *                    To fetch records from 6 record 'offset' should be set to 5.
+     *                    - limit = 0/MAX_VALUE is the long to set how many records should be fetched.
      * @return {@link List<GiftCertificate>} - {@link GiftCertificate}s in the system.
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<GiftCertificate>> certificates(@RequestParam Map<String, String> parameters) {
-        List<GiftCertificate> certificates = certificateService.findAllCertificates(parameters);
+        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
+        List<GiftCertificate> certificates
+                = certificateService.findAllCertificates(parameters);
+        long offset = Long.parseLong(parameters.get("offset"));
+        long limit = Long.parseLong(parameters.get("limit"));
+        Map<String, String> paramsNext = ColumnNames.createNextParameters(certificates, offset, limit);
+        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(certificates, offset, limit);
+
         List<EntityModel<GiftCertificate>> modelFromCertificates = certificates.stream()
                 .map(order -> EntityModel.of(order,
                         linkTo(methodOn(GiftCertificateController.class).addNewCertificate(certificates.get(0)))
                                 .withRel("Creates a new certificate (params: certificate): POST"),
                         linkTo(methodOn(GiftCertificateController.class).certificate(certificates.get(0).getId()))
-                                .withRel("Removes certificate from the system (params: certificateId): DELETE")
+                                .withRel("Fetches and removes certificate from the system" +
+                                        " (params: certificateId): GET, DELETE")
                 ))
                 .collect(Collectors.toList());
-        return CollectionModel.of(modelFromCertificates,
+        CollectionModel<EntityModel<GiftCertificate>> collectionModel = CollectionModel.of(modelFromCertificates,
                 linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))
                         .withRel("Fetches all users: GET"),
                 linkTo(methodOn(OrderController.class).fetchAllOrders())
                         .withRel("Fetches all orders: GET"),
-                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"),
+                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
+        collectionModel.add(linkTo(methodOn(GiftCertificateController.class).certificates(paramsNext)).
+                        withRel("Fetches NEXT PAGE of certificates: GET"),
+                linkTo(methodOn(GiftCertificateController.class).certificates(paramsPrev)).
+                        withRel("Fetches PREVIOUS PAGE of certificates: GET"),
                 linkTo(methodOn(GiftCertificateController.class).certificates(parameters)).withSelfRel());
+        return collectionModel;
     }
 
     /**
@@ -84,7 +100,7 @@ public class GiftCertificateController {
         GiftCertificate giftCertificate = certificateService.findCertificateById(certificateId);
         EntityModel<GiftCertificate> certificateEntityModel
                 = EntityModel.of(giftCertificate, linkTo(methodOn(GiftCertificateController.class)
-                        .certificate(certificateId)).withRel("Removes the certificate: DELETE"));
+                .certificate(certificateId)).withRel("Removes the certificate: DELETE"));
         certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).addNewCertificate(new GiftCertificate()))
                 .withRel("Creates new certificates (inputs: new certificate object): POST"));
         certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(certificateId)).withSelfRel());
@@ -133,7 +149,7 @@ public class GiftCertificateController {
     @PutMapping(value = "/{certificateId}")
     @ResponseStatus(HttpStatus.OK)
     public EntityModel<GiftCertificate> updateGiftCertificate(@PathVariable("certificateId") long certificateId,
-                                                 @RequestBody GiftCertificate giftCertificate) {
+                                                              @RequestBody GiftCertificate giftCertificate) {
         GiftCertificate certificate = certificateService.updateCertificate(certificateId, giftCertificate);
         EntityModel<GiftCertificate> certificateEntityModel
                 = EntityModel.of(certificate, linkTo(methodOn(GiftCertificateController.class)

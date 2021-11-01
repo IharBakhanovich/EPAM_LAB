@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -56,8 +57,25 @@ public class TagServiceImpl implements TagService {
      * Returns all {@link CertificateTag}s in the system.
      */
     @Override
-    public List<CertificateTag> findAllCertificateTags() {
-        return tagDAO.findAll();
+    public List<CertificateTag> findAllCertificateTags(Map<String, String> parameters) {
+        List<String> errorMessage = new ArrayList<>();
+        long offset = Long.parseLong(parameters.get("offset"));
+        long limit = Long.parseLong(parameters.get("limit"));
+        checkLimitAndOffset(errorMessage, offset, limit);
+        return tagDAO.findAllPagination(offset, limit);
+    }
+
+    private void checkLimitAndOffset(List<String> errorMessage, long offset, long limit) {
+        if (offset < 0) {
+            errorMessage.add(translator.toLocale("THE_OFFSET_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (limit < 0) {
+            errorMessage.add(translator.toLocale("THE_LIMIT_SHOULD_BE_MORE_THAN_0"));
+        }
+        if(!errorMessage.isEmpty()) {
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_TAG_NOT_VALID, errorMessage);
+        }
     }
 
     /**

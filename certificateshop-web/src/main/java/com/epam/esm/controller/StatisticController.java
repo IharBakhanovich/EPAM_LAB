@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
@@ -11,6 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -40,12 +44,15 @@ public class StatisticController {
     public EntityModel<CertificateTag> mostPopularTagOfTheBestUser() {
         CertificateTag tag = tagService.mostPopularTagOfTheBestUser();
 
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("offset", "0");
+        parameters.put("limit", ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         EntityModel<CertificateTag> orderEntityModel
                 = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
                 .tag(tag.getId())).withRel("Fetches tag by tagId(inputs: tagId): GET"));
         orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
                 .withRel("Creates new tag (inputs: new Tag object): POST"));
-        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tags())
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tags(parameters))
                 .withRel("Fetches all tags: GET"));
 
         return orderEntityModel.add(linkTo(methodOn(StatisticController.class)

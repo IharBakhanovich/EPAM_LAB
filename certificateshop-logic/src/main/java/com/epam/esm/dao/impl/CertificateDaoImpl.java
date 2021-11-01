@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.ToDoubleBiFunction;
 
 /**
  * The class that implements the CertificateDAO interface.
@@ -25,6 +26,14 @@ public class CertificateDaoImpl implements CertificateDao {
 
     private static final Logger LOGGER = LogManager.getLogger(CertificateDaoImpl.class);
 
+    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
+            = "select c.id as certificateId, c.name as certificateName," +
+            " c.description as certificateDescription, c.duration as certificateDuration," +
+            " c.create_date as certificateCreateDate, c.price as certificatePrice," +
+            " c.last_update_date as certificateLastUpdateDate, t.id as tagId, t.name as tagName" +
+            " from gift_certificate as c LEFT OUTER JOIN (has_tag as h LEFT OUTER JOIN tag as t ON t.id = h.tagId)" +
+            " ON c.id = h.certificateId WHERE c.id IN (select * from (select id from gift_certificate order by id" +
+            " LIMIT ?, ?) as query1)";
     private static final String FIND_ALL_ENTITIES_SQL
             = "select c.id as certificateId, c.name as certificateName," +
             " c.description as certificateDescription, c.duration as certificateDuration," +
@@ -108,11 +117,23 @@ public class CertificateDaoImpl implements CertificateDao {
     /**
      * Returns all the {@link GiftCertificate}s in the database.
      *
+     * @param offset is the offset query parameter.
+     * @param limit  is the limit query parameter.
+     * @return {@link List<GiftCertificate>}.
+     */
+    @Override
+    public List<GiftCertificate> findAllPagination(long offset, long limit) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, giftCertificateExtractor, offset, limit);
+    }
+
+    /**
+     * Returns all the {@link GiftCertificate}s in the database.
+     *
      * @return {@link List<GiftCertificate>}.
      */
     @Override
     public List<GiftCertificate> findAll() {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, giftCertificateExtractor);
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, giftCertificateExtractor);
     }
 
     /**

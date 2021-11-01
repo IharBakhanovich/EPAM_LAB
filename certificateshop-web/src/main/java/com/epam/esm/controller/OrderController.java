@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -112,6 +114,9 @@ public class OrderController {
 //            parameters.put("limit", "20");
 //            return orderService.findAllOrders(parameters);
 //        }
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("offset", "0");
+        parameters.put("limit", ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         List<Order> orders = orderService.findAllOrders();
         List<EntityModel<Order>> moderFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).withSelfRel(),
@@ -122,7 +127,7 @@ public class OrderController {
                         .withRel("Fetches all users: GET"),
                 linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
                         .withRel("Fetches all certificates: GET"),
-                linkTo(methodOn(CertificateTagController.class).tags()).withRel("Fetches all tags: GET"));
+                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
     }
 
     /**

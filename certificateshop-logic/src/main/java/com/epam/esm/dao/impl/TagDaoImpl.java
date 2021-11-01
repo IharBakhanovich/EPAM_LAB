@@ -23,6 +23,8 @@ import java.util.Optional;
 public class TagDaoImpl implements TagDao {
     private static final Logger LOGGER = LogManager.getLogger(CertificateDaoImpl.class);
 
+    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION = "select tag.id as tagId, tag.name as tagName from tag" +
+            " WHERE tag.id IN (select * from (select id from tag order by id LIMIT ?, ?) as query1)";
     private static final String FIND_ALL_ENTITIES_SQL = "select tag.id as tagId, tag.name as tagName from tag";
     private static final String INSERT_ENTITY_SQL = "insert into tag (name) values (?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from tag where id = ?";
@@ -80,7 +82,20 @@ public class TagDaoImpl implements TagDao {
     /**
      * Finds all {@link CertificateTag} entity in the database.
      *
+     * @param offset is the value of the records, which should be passed before fetching the data.
+     * @param limit is the value of the records, which should be fetched from the database.
      * @return List of the {@link CertificateTag} objects.
+     */
+    @Override
+    public List<CertificateTag> findAllPagination(long offset, long limit) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, certificateTagRowMapper, offset, limit);
+    }
+
+    //TODO delete at the end
+    /**
+     * Finds all {@link T} entity in the database.
+     *
+     * @return List of the {@link T} objects.
      */
     @Override
     public List<CertificateTag> findAll() {
