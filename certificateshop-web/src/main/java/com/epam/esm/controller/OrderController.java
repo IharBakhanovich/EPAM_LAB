@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
@@ -28,6 +29,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/orders")
 public class OrderController {
     private final OrderService orderService;
+    private final Translator translator;
 
     /**
      * Constructs the {@link OrderController}.
@@ -35,8 +37,9 @@ public class OrderController {
      * @param orderService is the service to inject.
      */
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, Translator translator) {
         this.orderService = orderService;
+        this.translator = translator;
     }
 
     /**
@@ -53,13 +56,13 @@ public class OrderController {
         Order order = orderService.orderCertificate(userId, certificateId);
         EntityModel<Order> orderEntityModel = EntityModel.of(order, linkTo(methodOn(OrderController.class)
                 .fetchOrderById(order.getId()))
-                .withRel("Fetches order by orderId (inputs: orderId): GET"));
+                .withRel(translator.toLocale("FETCHES_ORDER_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(UserController.class).userOrders(userId))
-                .withRel("Fetches all orders this user (inputs: userId): GET"));
+                .withRel(translator.toLocale("ALL_ORDERS_OF_THIS_USER_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
-                .withRel("Creates new order (inputs: new order object): POST"));
+                .withRel(translator.toLocale("CREATES_NEW_ORDER_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
-                .withRel("Fetches all certificates from the system (inputs: params(see API docs)): GET"));
+                .withRel(translator.toLocale("FETCHES_ALL_CERTIFICATES_HATEOAS_LINK_MESSAGE")));
 
         return orderEntityModel.add(linkTo(methodOn(OrderController.class).orderCertificate(userId, certificateId))
                 .withSelfRel());
@@ -78,11 +81,11 @@ public class OrderController {
         Order order = orderService.findOrderById(orderId);
         EntityModel<Order> orderEntityModel = EntityModel.of(order, linkTo(methodOn(OrderController.class)
                 .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
-                .withRel("Orders certificate by user(inputs: userId/certofocateId): POST"));
+                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
-                .withRel("Creates new order (inputs: new order object): POST"));
+                .withRel(translator.toLocale("CREATES_NEW_ORDER_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
-                .withRel("Fetches all orders: GET"));
+                .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")));
 
         return orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchOrderById(orderId)).withSelfRel());
     }
@@ -101,25 +104,25 @@ public class OrderController {
     public CollectionModel<EntityModel<Order>> fetchAllOrders(@RequestParam Map<String, String> parameters) {
         parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         List<Order> orders = orderService.findAllOrders(parameters);
-        long offset = Long.parseLong(parameters.get("offset"));
-        long limit = Long.parseLong(parameters.get("limit"));
+        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
+        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(orders, offset, limit);
         Map<String,String> paramsPrev = ColumnNames.createPrevParameters(orders, offset, limit);
         List<EntityModel<Order>> moderFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).
-                                withRel("Fetches and removes order from the system (params: orderId): GET, DELETE")))
+                                withRel(translator.toLocale("FETCHES_AND_REMOVES_ORDER_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         return CollectionModel.of(moderFromOrders,
                 linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))
-                        .withRel("Fetches all users: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_USERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(GiftCertificateController.class).certificates(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all certificates: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_CERTIFICATES_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(CertificateTagController.class).tags(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all tags: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_TAGS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class).fetchAllOrders(paramsPrev))
-                        .withRel("Fetches PREVIOUS PAGE of order: GET"),
+                        .withRel(translator.toLocale("FETCHES_PREVIOUS_PAGE_ORDERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class).fetchAllOrders(paramsNext))
-                        .withRel("Fetches NEXT PAGE of orders: GET"),
+                        .withRel(translator.toLocale("FETCHES_NEXT_PAGE_ORDERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class).fetchAllOrders(parameters)).withSelfRel());
     }
 
@@ -135,11 +138,11 @@ public class OrderController {
         Order orderAfterAdd = orderService.createOrder(order);
         EntityModel<Order> orderEntityModel = EntityModel.of(orderAfterAdd, linkTo(methodOn(OrderController.class)
                 .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
-                .withRel("Orders certificate by user(inputs: userId/certofocateId): POST"));
+                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchOrderById(orderAfterAdd.getId()))
-                .withRel("Fetches order by id (params: orderId : GET"));
+                .withRel(translator.toLocale("FETCHES_ORDER_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
-                .withRel("Fetches all orders: GET"));
+                .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")));
         return orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
                 .withSelfRel());
     }

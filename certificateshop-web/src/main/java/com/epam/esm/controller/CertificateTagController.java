@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
@@ -24,6 +25,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/tags")
 public class CertificateTagController {
     private final TagService tagService;
+    private final Translator translator;
 
     /**
      * Constructs the {@link CertificateTagController}.
@@ -31,8 +33,9 @@ public class CertificateTagController {
      * @param tagService is the service to inject.
      */
     @Autowired
-    public CertificateTagController(TagService tagService) {
+    public CertificateTagController(TagService tagService, Translator translator) {
         this.tagService = tagService;
+        this.translator = translator;
     }
 
     /**
@@ -46,21 +49,21 @@ public class CertificateTagController {
         parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         List<CertificateTag> tags = tagService.findAllCertificateTags(parameters);
 
-        long offset = Long.parseLong(parameters.get("offset"));
-        long limit = Long.parseLong(parameters.get("limit"));
+        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
+        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(tags, offset, limit);
         Map<String,String> paramsPrev = ColumnNames.createPrevParameters(tags, offset, limit);
         List<EntityModel<CertificateTag>> modelFromOrders = tags.stream().map(tag -> EntityModel.of(tag,
                         linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
-                                .withRel("Fetches and removes a tag by tagId: GET, DELETE"),
+                                .withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")),
                         linkTo(methodOn(CertificateTagController.class).updateCertificateTag(tag.getId(), tag))
-                                .withRel("Updates a tag (params: tagId, tag): PUT")))
+                                .withRel(translator.toLocale("UPDATES_TAG_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         CollectionModel<EntityModel<CertificateTag>> collectionModel = CollectionModel.of(modelFromOrders);
         collectionModel.add(linkTo(methodOn(CertificateTagController.class).tags(paramsNext)).
-                        withRel("Fetches NEXT PAGE of tags: GET"),
+                        withRel(translator.toLocale("FETCHES_NEXT_PAGE_TAG_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(GiftCertificateController.class).certificates(paramsPrev)).
-                        withRel("Fetches PREVIOUS PAGE of tags: GET"),
+                        withRel(translator.toLocale("FETCHES_PREVIOUS_PAGE_TAG_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(GiftCertificateController.class).certificates(parameters)).withSelfRel());
         return collectionModel;
     }
@@ -78,11 +81,12 @@ public class CertificateTagController {
         EntityModel<CertificateTag> orderEntityModel
                 = EntityModel.of(tag, linkTo(methodOn(StatisticController.class)
                 .mostPopularTagOfTheBestUser())
-                .withRel("Fetches the most popular tag of the user with the highest sum of all orders"));
+                .withRel(translator.toLocale(
+                        "FETCHES_MOST_POPULAR_TAG_USER_WITH_HIGHEST_ORDERS_SUM_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
-                .withRel("Creates new tag (inputs: new Tag object): POST"));
+                .withRel(translator.toLocale("CREATES_NEW_TAG_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
-                .withRel("Removes a tag: DELETE"));
+                .withRel(translator.toLocale("REMOVES_TAG_HATEOAS_LINK_MESSAGE")));
         return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId())).withSelfRel());
     }
 
@@ -109,9 +113,10 @@ public class CertificateTagController {
         CertificateTag tag = tagService.createCertificateTag(certificateTag);
         EntityModel<CertificateTag> orderEntityModel
                 = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
-                .updateCertificateTag(tag.getId(), tag)).withRel("Updates the tag (inputs: tagId): PUT"));
+                .updateCertificateTag(tag.getId(), tag))
+                .withRel(translator.toLocale("UPDATES_TAG_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
-                .withRel("Fetches and removes a tag: GET, DELETE"));
+                .withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")));
         return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
                 .withSelfRel());
     }
@@ -132,9 +137,9 @@ public class CertificateTagController {
         CertificateTag tag = tagService.updateCertificateTag(tagId, certificateTag);
         EntityModel<CertificateTag> orderEntityModel
                 = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
-                .tag(tagId)).withRel("Fetches and removes a tag by ID (inputs: tagId): GET"));
+                .tag(tagId)).withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
-                .withRel("Creates new tag (inputs: new Tag object): POST"));
+                .withRel(translator.toLocale("CREATES_NEW_TAG_HATEOAS_LINK_MESSAGE")));
         return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class)
                 .updateCertificateTag(tagId, certificateTag)).withSelfRel());
     }

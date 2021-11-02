@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.dto.OrderDto;
 import com.epam.esm.model.impl.CertificateTag;
@@ -28,6 +29,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final Translator translator;
 
     /**
      * Constructs the {@link UserController}.
@@ -35,8 +37,9 @@ public class UserController {
      * @param userService is the service to inject.
      */
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, Translator translator) {
         this.userService = userService;
+        this.translator = translator;
     }
 
     /**
@@ -52,23 +55,23 @@ public class UserController {
         List<EntityModel<Order>> modelFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).withSelfRel(),
                         linkTo(methodOn(UserController.class).getUserById(userId))
-                                .withRel("Fetches this user: GET"),
+                                .withRel(translator.toLocale("FETCHES_USER_HATEOAS_LINK_MESSAGE")),
                         linkTo(methodOn(UserController.class).addNewUser(new User()))
-                                .withRel("Adds new user in the system: POST"),
+                                .withRel(translator.toLocale("CREATES_NEW_USER_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class)
                         .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
-                        .withRel("User can order a certificate (params: userId/certificateId): POST")))
+                        .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         return CollectionModel.of(modelFromOrders, linkTo(methodOn(UserController.class)
                         .userOrders(userId)).withSelfRel(),
                 linkTo(methodOn(UserController.class).fetchAllUsers(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all users: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_USERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all orders: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(GiftCertificateController.class).certificates(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all certificates: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_CERTIFICATES_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(CertificateTagController.class).tags(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all tags: GET"));
+                        .withRel(translator.toLocale("FETCHES_ALL_TAGS_HATEOAS_LINK_MESSAGE")));
     }
 
     /**
@@ -94,15 +97,16 @@ public class UserController {
     public EntityModel<User> getUserById(@PathVariable("userId") long userId) {
         User user = userService.fetchUserById(userId);
         EntityModel<User> userEntityModel = EntityModel.of(user, linkTo(methodOn(UserController.class)
-                .userOrders(userId)).withRel("All certificates this user: GET"));
+                .userOrders(userId))
+                .withRel(translator.toLocale("ALL_CERTIFICATES_OF_THIS_USER_HATEOAS_LINK_MESSAGE")));
         userEntityModel.add(linkTo(methodOn(UserController.class)
                 .costAndTimeOfUsersOrder(user.getId(), user.getOrders().get(0).getId()))
-                .withRel("Cost and ordered time of the first user order (inputs: userId, orderId): GET"));
+                .withRel(translator.toLocale("COST_AND_TIME_OF_THE_USER_ORDER_HATEOAS_LINK_MESSAGE")));
         userEntityModel.add(linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<>()))
-                .withRel("Fetches all users in the system: GET"));
+                .withRel(translator.toLocale("FETCHES_ALL_USERS_HATEOAS_LINK_MESSAGE")));
         userEntityModel.add(linkTo(methodOn(OrderController.class)
                 .orderCertificate(userId, user.getOrders().get(0).getCertificates().get(0).getId()))
-                .withRel("User can order a certificate (params: userId/certificateId): POST"));
+                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         userEntityModel.add(linkTo(methodOn(UserController.class).getUserById(userId)).withSelfRel());
         return  userEntityModel;
     }
@@ -127,19 +131,19 @@ public class UserController {
         Map<String,String> paramsPrev = ColumnNames.createPrevParameters(users, offset, limit);
         List<EntityModel<User>> moderFromOrders = users.stream().map(user -> EntityModel.of(user,
                         linkTo(methodOn(UserController.class).getUserById(user.getId()))
-                                .withRel("Fetches and removes user from the system (params: userId): GET, DELETE")))
+                                .withRel(translator.toLocale("FETCHES_AND_REMOVES_USER_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         return CollectionModel.of(moderFromOrders,
                 linkTo(methodOn(GiftCertificateController.class).certificates(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all certificates: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_CERTIFICATES_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(CertificateTagController.class).tags(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all tags: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_TAGS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all orders: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(UserController.class).fetchAllUsers(paramsPrev))
-                        .withRel("Fetches PREVIOUS PAGE of users: GET"),
+                        .withRel(translator.toLocale("FETCHES_PREVIOUS_PAGE_USERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(UserController.class).fetchAllUsers(paramsNext))
-                        .withRel("Fetches NEXT PAGE of users: GET"),
+                        .withRel(translator.toLocale("FETCHES_NEXT_PAGE_USERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(UserController.class).fetchAllUsers(parameters)).withSelfRel());
     }
 
@@ -155,11 +159,12 @@ public class UserController {
                                                          @PathVariable("orderId") long orderId) {
         OrderDto orderDto = userService.findUserOrderByOrderIdCostAndTime(userId, orderId);
         EntityModel<OrderDto> orderDtoEntityModel = EntityModel.of(orderDto, linkTo(methodOn(OrderController.class)
-                        .fetchOrderById(orderId)).withRel("Fetches all details of this order(inputs: orderId): GET"));
+                        .fetchOrderById(orderId)).withRel(translator
+                .toLocale("FETCHES_ORDER_HATEOAS_LINK_MESSAGE")));
         orderDtoEntityModel.add(linkTo(methodOn(UserController.class).getUserById(userId))
-                .withRel("Fetches this user (inputs: userId): GET"));
+                .withRel(translator.toLocale("FETCHES_USER_HATEOAS_LINK_MESSAGE")));
         orderDtoEntityModel.add(linkTo(methodOn(UserController.class).userOrders(userId))
-                .withRel("Fetches all user's orders: GET"));
+                .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")));
 
         return orderDtoEntityModel.add(linkTo(methodOn(UserController.class).costAndTimeOfUsersOrder(userId, orderId))
                 .withSelfRel());

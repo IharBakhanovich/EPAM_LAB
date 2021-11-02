@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.Order;
@@ -26,10 +27,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/statistics")
 public class StatisticController {
     private final TagService tagService;
+    private final Translator translator;
 
     @Autowired
-    public StatisticController(TagService tagService) {
+    public StatisticController(TagService tagService, Translator translator) {
         this.tagService = tagService;
+        this.translator = translator;
     }
 
     /**
@@ -43,17 +46,13 @@ public class StatisticController {
     @ResponseStatus(HttpStatus.OK)
     public EntityModel<CertificateTag> mostPopularTagOfTheBestUser() {
         CertificateTag tag = tagService.mostPopularTagOfTheBestUser();
-
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("offset", "0");
-        parameters.put("limit", ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         EntityModel<CertificateTag> orderEntityModel
                 = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
-                .tag(tag.getId())).withRel("Fetches tag by tagId(inputs: tagId): GET"));
+                .tag(tag.getId())).withRel(translator.toLocale("FETCHES_TAG_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
-                .withRel("Creates new tag (inputs: new Tag object): POST"));
-        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tags(parameters))
-                .withRel("Fetches all tags: GET"));
+                .withRel(translator.toLocale("CREATES_NEW_TAG_HATEOAS_LINK_MESSAGE")));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tags(ColumnNames.DEFAULT_PARAMS))
+                .withRel(translator.toLocale("FETCHES_ALL_TAGS_HATEOAS_LINK_MESSAGE")));
 
         return orderEntityModel.add(linkTo(methodOn(StatisticController.class)
                 .mostPopularTagOfTheBestUser()).withSelfRel());

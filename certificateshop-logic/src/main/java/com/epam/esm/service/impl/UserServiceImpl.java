@@ -5,6 +5,7 @@ import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.UserDao;
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.dto.OrderDto;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
@@ -105,8 +106,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAllUsers(Map<String, String> parameters) {
         List<String> errorMessage = new ArrayList<>();
-        long offset = Long.parseLong(parameters.get("offset"));
-        long limit = Long.parseLong(parameters.get("limit"));
+        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
+        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
         checkLimitAndOffset(errorMessage, offset, limit);
         List<User> users = userDao.findAllPagination(offset, limit);
         return users;
@@ -140,7 +141,6 @@ public class UserServiceImpl implements UserService {
             } else {
                 for (Order order : user.getOrders()) {
                     for (GiftCertificate certificate : order.getCertificates()) {
-                        // TODO should it be checked by certificate name if certificateId empty or such a certificate does not exist in the DB?
                         checkCertificateId(errorMessage, certificate);
                     }
                 }

@@ -5,6 +5,7 @@ import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.UserDao;
+import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
 import com.epam.esm.model.impl.GiftCertificate;
@@ -175,8 +176,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> findAllOrders(Map<String, String> parameters) {
         List<String> errorMessage = new ArrayList<>();
-        long offset = Long.parseLong(parameters.get("offset"));
-        long limit = Long.parseLong(parameters.get("limit"));
+        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
+        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
         checkLimitAndOffset(errorMessage, offset, limit);
         return orderDao.findAllPagination(offset, limit);
     }

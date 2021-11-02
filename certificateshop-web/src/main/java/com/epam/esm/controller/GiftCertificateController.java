@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.ColumnNames;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.CertificateService;
@@ -24,6 +25,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/certificates")
 public class GiftCertificateController {
     private final CertificateService certificateService;
+    private final Translator translator;
 
     /**
      * Constructs the {@link GiftCertificateController}.
@@ -31,8 +33,9 @@ public class GiftCertificateController {
      * @param certificateService is the service to inject.
      */
     @Autowired
-    public GiftCertificateController(CertificateService certificateService) {
+    public GiftCertificateController(CertificateService certificateService, Translator translator) {
         this.certificateService = certificateService;
+        this.translator = translator;
     }
 
     /**
@@ -59,29 +62,30 @@ public class GiftCertificateController {
     public CollectionModel<EntityModel<GiftCertificate>> certificates(@RequestParam Map<String, String> parameters) {
         parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
         List<GiftCertificate> certificates = certificateService.findAllCertificates(parameters);
-        long offset = Long.parseLong(parameters.get("offset"));
-        long limit = Long.parseLong(parameters.get("limit"));
+        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
+        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(certificates, offset, limit);
         Map<String,String> paramsPrev = ColumnNames.createPrevParameters(certificates, offset, limit);
 
         List<EntityModel<GiftCertificate>> modelFromCertificates = certificates.stream()
                 .map(order -> EntityModel.of(order,
                         linkTo(methodOn(GiftCertificateController.class).addNewCertificate(certificates.get(0)))
-                                .withRel("Creates a new certificate (params: certificate): POST"),
+                                .withRel(translator.toLocale("CREATES_NEW_CERTIFICATE_HATEOAS_LINK_MESSAGE")),
                         linkTo(methodOn(GiftCertificateController.class).certificate(certificates.get(0).getId()))
-                                .withRel("Fetches and removes certificate from the system" +
-                                        " (params: certificateId): GET, DELETE")))
+                                .withRel(translator
+                                        .toLocale("FETCHES_AND_REMOVES_CERTIFICATE_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         CollectionModel<EntityModel<GiftCertificate>> collectionModel = CollectionModel.of(modelFromCertificates,
                 linkTo(methodOn(UserController.class).fetchAllUsers(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all users: GET"),
+                        .withRel(translator.toLocale("FETCHES_ALL_USERS_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
-                        .withRel("Fetches all orders: GET"),
-                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
+                        .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")),
+                linkTo(methodOn(CertificateTagController.class).tags(parameters))
+                        .withRel(translator.toLocale("FETCHES_ALL_TAGS_HATEOAS_LINK_MESSAGE")));
         collectionModel.add(linkTo(methodOn(GiftCertificateController.class).certificates(paramsNext)).
-                        withRel("Fetches NEXT PAGE of certificates: GET"),
+                        withRel(translator.toLocale("FETCHES_NEXT_PAGE_CERTIFICATES_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(GiftCertificateController.class).certificates(paramsPrev)).
-                        withRel("Fetches PREVIOUS PAGE of certificates: GET"),
+                        withRel(translator.toLocale("FETCHES_PREVIOUS_PAGE_CERTIFICATES_HATEOAS_LINK_MESSAGE")),
                 linkTo(methodOn(GiftCertificateController.class).certificates(parameters)).withSelfRel());
         return collectionModel;
     }
@@ -96,12 +100,14 @@ public class GiftCertificateController {
     @ResponseStatus(HttpStatus.OK)
     public EntityModel<GiftCertificate> certificate(@PathVariable("certificateId") long certificateId) {
         GiftCertificate giftCertificate = certificateService.findCertificateById(certificateId);
-        EntityModel<GiftCertificate> certificateEntityModel
-                = EntityModel.of(giftCertificate, linkTo(methodOn(GiftCertificateController.class)
-                .certificate(certificateId)).withRel("Removes the certificate: DELETE"));
-        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).addNewCertificate(new GiftCertificate()))
-                .withRel("Creates new certificates (inputs: new certificate object): POST"));
-        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(certificateId)).withSelfRel());
+        EntityModel<GiftCertificate> certificateEntityModel = EntityModel.of(giftCertificate,
+                linkTo(methodOn(GiftCertificateController.class).certificate(certificateId))
+                .withRel(translator.toLocale("REMOVES_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
+        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class)
+                .addNewCertificate(new GiftCertificate()))
+                .withRel(translator.toLocale("CREATES_NEW_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
+        certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class)
+                .certificate(certificateId)).withSelfRel());
         return certificateEntityModel;
     }
 
@@ -129,7 +135,7 @@ public class GiftCertificateController {
         EntityModel<GiftCertificate> certificateEntityModel
                 = EntityModel.of(giftCertificate, linkTo(methodOn(GiftCertificateController.class)
                 .updateGiftCertificate(giftCertificate.getId(), giftCertificate))
-                .withRel("Updates the certificate (inputs: certificateId, certificate object): PUT"));
+                .withRel(translator.toLocale("UPDATES_NEW_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(giftCertificate.getId()))
                 .withRel("Fetches and removes a certificate: GET, DELETE"));
         return certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class)
@@ -152,9 +158,9 @@ public class GiftCertificateController {
         EntityModel<GiftCertificate> certificateEntityModel
                 = EntityModel.of(certificate, linkTo(methodOn(GiftCertificateController.class)
                 .addNewCertificate(new GiftCertificate()))
-                .withRel("Creates new certificates (inputs: new certificate object): POST"));
+                .withRel(translator.toLocale("CREATES_NEW_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificate(giftCertificate.getId()))
-                .withRel("Fetches and removes a certificate: GET, DELETE"));
+                .withRel(translator.toLocale("FETCHES_AND_REMOVES_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         return certificateEntityModel.add(linkTo(methodOn(GiftCertificateController.class)
                 .updateGiftCertificate(certificate.getId(), certificate)).withSelfRel());
     }
