@@ -81,7 +81,7 @@ public class OrderController {
                 .withRel("Orders certificate by user(inputs: userId/certofocateId): POST"));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
                 .withRel("Creates new order (inputs: new order object): POST"));
-        orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders())
+        orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
                 .withRel("Fetches all orders: GET"));
 
         return orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchOrderById(orderId)).withSelfRel());
@@ -91,43 +91,36 @@ public class OrderController {
      * The method that realises the 'GET /orders' query.
      *
      * @param parameters: there are following parameters, which can be applied to the query:
-     *                    - tag_name=123 is the name of the tag by which the query will be executed and only certificates,
-     *                    that contain the tag with a mentioned name will be shown;
-     *                    - part_cert_name=123 is the part of a certificate name. Only certificates, which contain
-     *                    the value in their names will be shown;
-     *                    - part_descr_name=123 is the part of a description name. Only certificates, which contain
-     *                    the value in their descriptions will be shown;
-     *                    - sortByName=asc/desc is the parameter to sort all the certificates by name. ASC means
-     *                    to sort in normal order, DESC - the sort order is reversed;
-     *                    -  sortByDate=asc/desc is the parameter to sort all the certificates by CreateDate.
-     *                    ASC means to sort in normal order, DESC - the sort order is reversed.
+     *                    -  offset=0/MAX_VALUE is the long to pass records from database.
+     *                    To fetch records from 6 record 'offset' should be set to 5.
+     *                    - limit = 0/MAX_VALUE is the long to set how many records should be fetched.
      * @return {@link List<User>} - all {@link User}s in the system.
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CollectionModel<EntityModel<Order>> fetchAllOrders() {
-//        Long offset = Long.getLong(parameters.get("offset"));
-//        Long limit = Long.getLong(parameters.get("limit"));
-
-//        if (offset == null || limit == null) {
-//            parameters.put("offset", "0");
-//            parameters.put("limit", "20");
-//            return orderService.findAllOrders(parameters);
-//        }
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("offset", "0");
-        parameters.put("limit", ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
-        List<Order> orders = orderService.findAllOrders();
+    public CollectionModel<EntityModel<Order>> fetchAllOrders(@RequestParam Map<String, String> parameters) {
+        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
+        List<Order> orders = orderService.findAllOrders(parameters);
+        long offset = Long.parseLong(parameters.get("offset"));
+        long limit = Long.parseLong(parameters.get("limit"));
+        Map<String, String> paramsNext = ColumnNames.createNextParameters(orders, offset, limit);
+        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(orders, offset, limit);
         List<EntityModel<Order>> moderFromOrders = orders.stream().map(order -> EntityModel.of(order,
-                        linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).withSelfRel(),
-                        linkTo(methodOn(OrderController.class).fetchAllOrders()).withRel("Fetches all orders: GET")))
+                        linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).
+                                withRel("Fetches and removes order from the system (params: orderId): GET, DELETE")))
                 .collect(Collectors.toList());
-        return CollectionModel.of(moderFromOrders, linkTo(methodOn(OrderController.class).fetchAllOrders()).withSelfRel(),
+        return CollectionModel.of(moderFromOrders,
                 linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))
                         .withRel("Fetches all users: GET"),
-                linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
+                linkTo(methodOn(GiftCertificateController.class).certificates(ColumnNames.DEFAULT_PARAMS))
                         .withRel("Fetches all certificates: GET"),
-                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
+                linkTo(methodOn(CertificateTagController.class).tags(ColumnNames.DEFAULT_PARAMS))
+                        .withRel("Fetches all tags: GET"),
+                linkTo(methodOn(OrderController.class).fetchAllOrders(paramsPrev))
+                        .withRel("Fetches PREVIOUS PAGE of order: GET"),
+                linkTo(methodOn(OrderController.class).fetchAllOrders(paramsNext))
+                        .withRel("Fetches NEXT PAGE of orders: GET"),
+                linkTo(methodOn(OrderController.class).fetchAllOrders(parameters)).withSelfRel());
     }
 
     /**
@@ -145,7 +138,7 @@ public class OrderController {
                 .withRel("Orders certificate by user(inputs: userId/certofocateId): POST"));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchOrderById(orderAfterAdd.getId()))
                 .withRel("Fetches order by id (params: orderId : GET"));
-        orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders())
+        orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
                 .withRel("Fetches all orders: GET"));
         return orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
                 .withSelfRel());

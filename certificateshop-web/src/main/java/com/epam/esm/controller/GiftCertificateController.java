@@ -58,8 +58,7 @@ public class GiftCertificateController {
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<GiftCertificate>> certificates(@RequestParam Map<String, String> parameters) {
         parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
-        List<GiftCertificate> certificates
-                = certificateService.findAllCertificates(parameters);
+        List<GiftCertificate> certificates = certificateService.findAllCertificates(parameters);
         long offset = Long.parseLong(parameters.get("offset"));
         long limit = Long.parseLong(parameters.get("limit"));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(certificates, offset, limit);
@@ -71,13 +70,12 @@ public class GiftCertificateController {
                                 .withRel("Creates a new certificate (params: certificate): POST"),
                         linkTo(methodOn(GiftCertificateController.class).certificate(certificates.get(0).getId()))
                                 .withRel("Fetches and removes certificate from the system" +
-                                        " (params: certificateId): GET, DELETE")
-                ))
+                                        " (params: certificateId): GET, DELETE")))
                 .collect(Collectors.toList());
         CollectionModel<EntityModel<GiftCertificate>> collectionModel = CollectionModel.of(modelFromCertificates,
-                linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))
+                linkTo(methodOn(UserController.class).fetchAllUsers(ColumnNames.DEFAULT_PARAMS))
                         .withRel("Fetches all users: GET"),
-                linkTo(methodOn(OrderController.class).fetchAllOrders())
+                linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
                         .withRel("Fetches all orders: GET"),
                 linkTo(methodOn(CertificateTagController.class).tags(parameters)).withRel("Fetches all tags: GET"));
         collectionModel.add(linkTo(methodOn(GiftCertificateController.class).certificates(paramsNext)).

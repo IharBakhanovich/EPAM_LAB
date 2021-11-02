@@ -104,7 +104,25 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<User> findAllUsers(Map<String, String> parameters) {
-        return userDao.findAll();
+        List<String> errorMessage = new ArrayList<>();
+        long offset = Long.parseLong(parameters.get("offset"));
+        long limit = Long.parseLong(parameters.get("limit"));
+        checkLimitAndOffset(errorMessage, offset, limit);
+        List<User> users = userDao.findAllPagination(offset, limit);
+        return users;
+    }
+
+    private void checkLimitAndOffset(List<String> errorMessage, long offset, long limit) {
+        if (offset < 0) {
+            errorMessage.add(translator.toLocale("THE_OFFSET_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (limit < 0) {
+            errorMessage.add(translator.toLocale("THE_LIMIT_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (!errorMessage.isEmpty()) {
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_USER_NOT_VALID, errorMessage);
+        }
     }
 
     /**

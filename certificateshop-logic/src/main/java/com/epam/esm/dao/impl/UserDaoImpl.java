@@ -21,6 +21,13 @@ public class UserDaoImpl implements UserDao {
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
+    private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
+            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+            " ON u.id = uo.userId" +
+            " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
     private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from user where id = ?";
     private static final String UPDATE_ENTITY_SQL = "update user set nickName = ? where id = ?";
@@ -99,6 +106,18 @@ public class UserDaoImpl implements UserDao {
     @Override
     public List<User> findAll() {
         return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, userExtractor);
+    }
+
+    /**
+     * Finds all {@link User} entity in the database.
+     *
+     * @param offset is the offset query parameter.
+     * @param limit  is the limit query parameter.
+     * @return List of the {@link User} objects.
+     */
+    @Override
+    public List<User> findAllPagination(long offset, long limit) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_PAGINATION_SQL, userExtractor, offset, limit);
     }
 
     /**

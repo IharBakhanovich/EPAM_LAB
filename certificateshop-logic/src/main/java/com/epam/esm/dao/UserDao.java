@@ -2,6 +2,7 @@ package com.epam.esm.dao;
 
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.model.impl.GiftCertificate;
+import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 
 import java.util.List;
@@ -57,4 +58,13 @@ public interface UserDao extends Dao<User>{
      * @return {@link Optional<User>}.
      */
     Optional<User> findByName(String nickName);
+
+    /**
+     * Finds all {@link User} entity in the database.
+     *
+     * @param offset is the offset query parameter.
+     * @param limit  is the limit query parameter.
+     * @return List of the {@link User} objects.
+     */
+    List<User> findAllPagination(long offset, long limit);
 }

@@ -7,6 +7,7 @@ import com.epam.esm.model.impl.Order;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface OrderDao extends Dao<Order> {
@@ -69,4 +70,13 @@ public interface OrderDao extends Dao<Order> {
      */
     void saveIdsInUserorder_certificateTable(long orderId, long certificateId,
                                              GiftCertificate giftCertificate, BigDecimal certificatePrice);
+
+    /**
+     * Finds all {@link Order} entity in the database.
+     *
+     * @param offset is the offset query parameter.
+     * @param limit  is the limit query parameter.
+     * @return List of the {@link Order} objects.
+     */
+    List<Order> findAllPagination(long offset, long limit);
 }

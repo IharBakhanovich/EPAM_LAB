@@ -110,6 +110,9 @@ public class CertificateServiceImpl implements CertificateService {
 
     /**
      * Returns all certificates in the system.
+     *
+     * @param parameters the filters and parameters to apply to the values to be returned.
+     * @return {@link List<GiftCertificate}.
      */
     @Override
     public List<GiftCertificate> findAllCertificates(Map<String, String> parameters) {

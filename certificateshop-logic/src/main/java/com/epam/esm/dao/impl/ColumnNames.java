@@ -30,6 +30,13 @@ public class ColumnNames {
     public static final String TABLE_USERORDER_COLUMN_NAME = "orderName";
     // default value in the system. Sets how many records on the page will be shown.
     public static final String DEFAULT_ENTITIES_ON_THE_PAGE = "5";
+    public static final Map<String, String> DEFAULT_PARAMS = new HashMap<String, String>(){{
+        put("offset", "0");
+        put("limit", DEFAULT_ENTITIES_ON_THE_PAGE);
+    }};
+    public static final String OFFSET_PARAM_NAME = "offset";
+    public static final String LIMIT_PARAM_NAME = "limit";
+
 
 
     /**
@@ -54,7 +61,7 @@ public class ColumnNames {
     public static<T> Map<String, String> createPrevParameters(List<T> certificates, long offset, long limit) {
         Map<String, String> paramsPrev = new HashMap<>();
         long prevOffset = 0;
-        if (offset - 2*limit > 0) {
+        if (offset - 2*limit >= 0) {
             prevOffset = offset - limit;
         }
         paramsPrev.put("offset", String.valueOf(prevOffset));

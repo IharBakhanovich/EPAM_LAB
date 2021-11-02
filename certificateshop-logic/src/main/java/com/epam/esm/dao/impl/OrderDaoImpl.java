@@ -24,6 +24,13 @@ public class OrderDaoImpl implements OrderDao {
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
+    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
+            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+            " ON u.id = uo.userId" +
+            " WHERE uo.id IN (select * from (select id from userorder order by id LIMIT ?, ?) as query1)";
     private static final String INSERT_ENTITY_SQL
             = "insert into userorder (userId, create_date, name) values (?, ?, ?)";
     private static final String INSERT_VALUES_IN_USERORDER_CERTIFICATE_TABLE_SQL
@@ -93,6 +100,18 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<Order> findAll() {
         return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, orderExtractor);
+    }
+
+    /**
+     * Finds all {@link Order} entity in the database.
+     *
+     * @param offset is the offset query parameter.
+     * @param limit  is the limit query parameter.
+     * @return List of the {@link Order} objects.
+     */
+    @Override
+    public List<Order> findAllPagination(long offset, long limit) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, orderExtractor, offset, limit);
     }
 
     /**
