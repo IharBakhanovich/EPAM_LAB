@@ -1,14 +1,12 @@
 package com.epam.esm.dao;
 
 import com.epam.esm.exception.DuplicateException;
-import com.epam.esm.model.impl.GiftCertificate;
-import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface UserDao extends Dao<User>{
+public interface UserDao extends Dao<User> {
     /**
      * Saves {@link User} in the database.
      *
@@ -62,9 +60,9 @@ public interface UserDao extends Dao<User>{
     /**
      * Finds all {@link User} entity in the database.
      *
-     * @param offset is the offset query parameter.
-     * @param limit  is the limit query parameter.
+     * @param pageNumber              is the pageNumber query parameter.
+     * @param amountEntitiesOnThePage is the amountEntitiesOnThePage query parameter.
      * @return List of the {@link User} objects.
      */
-    List<User> findAllPagination(long offset, long limit);
+    List<User> findAllPagination(int pageNumber, int amountEntitiesOnThePage);
 }

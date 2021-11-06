@@ -1,10 +1,11 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
@@ -16,8 +17,9 @@ import java.util.Optional;
 /**
  * The class that implements the OrderDao interface.
  */
+@Profile("dev")
 @Repository
-public class OrderDaoImpl implements OrderDao {
+public class JdbcOrderDaoImpl implements OrderDao {
     private static final String FIND_ALL_ENTITIES_SQL
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
@@ -58,7 +60,7 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     private ResultSetExtractor<List<Order>> orderExtractor;
 
-    public OrderDaoImpl() {
+    public JdbcOrderDaoImpl() {
     }
 
     /**
@@ -105,13 +107,14 @@ public class OrderDaoImpl implements OrderDao {
     /**
      * Finds all {@link Order} entity in the database.
      *
-     * @param offset is the offset query parameter.
-     * @param limit  is the limit query parameter.
+     * @param pageNumber is the pageNumber query parameter.
+     * @param amountEntitiesOnThePage  is the amountEntitiesOnThePage query parameter.
      * @return List of the {@link Order} objects.
      */
     @Override
-    public List<Order> findAllPagination(long offset, long limit) {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, orderExtractor, offset, limit);
+    public List<Order> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, orderExtractor,
+                pageNumber*amountEntitiesOnThePage, amountEntitiesOnThePage);
     }
 
     /**

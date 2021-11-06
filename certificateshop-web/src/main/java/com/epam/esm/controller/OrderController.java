@@ -1,7 +1,7 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.impl.ColumnNames;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
@@ -102,12 +102,14 @@ public class OrderController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<Order>> fetchAllOrders(@RequestParam Map<String, String> parameters) {
-        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
+        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
         List<Order> orders = orderService.findAllOrders(parameters);
-        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
-        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
-        Map<String, String> paramsNext = ColumnNames.createNextParameters(orders, offset, limit);
-        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(orders, offset, limit);
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage
+                = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        Map<String, String> paramsNext = ColumnNames.createNextParameters(orders, pageNumber, amountEntitiesOnThePage);
+        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(orders, pageNumber, amountEntitiesOnThePage);
+
         List<EntityModel<Order>> moderFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).
                                 withRel(translator.toLocale("FETCHES_AND_REMOVES_ORDER_HATEOAS_LINK_MESSAGE"))))

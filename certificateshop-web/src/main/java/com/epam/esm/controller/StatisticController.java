@@ -1,9 +1,8 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.impl.ColumnNames;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
-import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;

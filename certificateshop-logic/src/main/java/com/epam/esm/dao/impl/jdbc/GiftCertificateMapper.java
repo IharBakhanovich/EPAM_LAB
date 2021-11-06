@@ -1,4 +1,4 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;

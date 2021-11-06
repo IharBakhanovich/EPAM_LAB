@@ -1,7 +1,7 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.configuration.Translator;
-import com.epam.esm.dao.impl.ColumnNames;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.service.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,12 +59,15 @@ public class GiftCertificateController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<GiftCertificate>> certificates(@RequestParam Map<String, String> parameters) {
-        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_ENTITIES_ON_THE_PAGE);
+        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
         List<GiftCertificate> certificates = certificateService.findAllCertificates(parameters);
-        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
-        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
-        Map<String, String> paramsNext = ColumnNames.createNextParameters(certificates, offset, limit);
-        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(certificates, offset, limit);
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage
+                = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        Map<String, String> paramsNext
+                = ColumnNames.createNextParameters(certificates, pageNumber, amountEntitiesOnThePage);
+        Map<String,String> paramsPrev
+                = ColumnNames.createPrevParameters(certificates, pageNumber, amountEntitiesOnThePage);
 
         List<EntityModel<GiftCertificate>> modelFromCertificates = certificates.stream()
                 .map(order -> EntityModel.of(order,

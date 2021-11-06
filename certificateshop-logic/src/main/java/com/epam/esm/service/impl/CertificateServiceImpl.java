@@ -3,6 +3,7 @@ package com.epam.esm.service.impl;
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.TagDao;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
@@ -14,10 +15,12 @@ import com.epam.esm.validator.CertificateValidator;
 import com.epam.esm.validator.TagValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Transactional
 @Service
 public class CertificateServiceImpl implements CertificateService {
     public static final String ERROR_CODE_DUPLICATE = "409";
@@ -68,21 +71,41 @@ public class CertificateServiceImpl implements CertificateService {
             throw new MethodArgumentNotValidException(ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_TAG_NOT_VALID,
                     errorMessage);
         }
+        giftCertificate.setId(0);
         giftCertificate.setCreateDate(LocalDateTime.now());
         giftCertificate.setLastUpdateDate(LocalDateTime.now());
+        saveNewTagsInDatabase(giftCertificate, 0);
         certificateDAO.save(giftCertificate);
-        saveNewTagsInDatabase(giftCertificate);
         saveRelations(giftCertificate);
         return certificateDAO.findByName(giftCertificate.getName()).get();
     }
 
-    private void saveNewTagsInDatabase(GiftCertificate giftCertificate) {
+    // if IdCertificateFromDB is 0, that means that it is for creatinf a new certificate, otherwise for updating
+    private void saveNewTagsInDatabase(GiftCertificate giftCertificate, long idCertificateFromDB) {
         List<CertificateTag> certificateTags = giftCertificate.getTags();
-        for (CertificateTag certificateTag : certificateTags) {
-            if (!tagDAO.findByName(certificateTag.getName()).isPresent()) {
-                tagDAO.save(certificateTag);
+        List<CertificateTag> certificateTags1 = new ArrayList<>();
+        if (certificateTags != null) {
+            for (CertificateTag certificateTag : fetchTagsWithUniqueNames(certificateTags)) {
+                Optional<CertificateTag> certificateTag1 = tagDAO.findByName(certificateTag.getName());
+                // to check if the tag is new, or it already exists in the database
+                if (!certificateTag1.isPresent()) {
+                    CertificateTag newTag = new CertificateTag(0, certificateTag.getName());
+                    tagValidator.validateTag(newTag, true);
+                    tagDAO.save(newTag);
+                    certificateTags1.add(tagDAO.findByName(newTag.getName()).get());
+                } else {
+                    // to save an existed tag in the new list
+                    if (!certificateTags1.contains(certificateTag1.get())) {
+                        certificateTags1.add(certificateTag1.get());
+                    }
+                }
+            }
+        } else {
+            if (idCertificateFromDB!=0) {
+                certificateTags1 = certificateDAO.findById(idCertificateFromDB).get().getTags();
             }
         }
+        giftCertificate.setTags(certificateTags1);
     }
 
     private void saveRelations(GiftCertificate giftCertificate) {
@@ -112,35 +135,36 @@ public class CertificateServiceImpl implements CertificateService {
      * Returns all certificates in the system.
      *
      * @param parameters the filters and parameters to apply to the values to be returned.
-     * @return {@link List<GiftCertificate}.
+     * @return {@link List<GiftCertificate>}.
      */
     @Override
     public List<GiftCertificate> findAllCertificates(Map<String, String> parameters) {
         List<String> errorMessage = new ArrayList<>();
-        long offset = Long.parseLong(parameters.get("offset"));
-        long limit = Long.parseLong(parameters.get("limit"));
-        checkLimitAndOffset(errorMessage, offset, limit);
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage
+                = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        checkLimitAndOffset(errorMessage, pageNumber, amountEntitiesOnThePage);
         List<GiftCertificate> giftCertificates = new ArrayList<>();
-        giftCertificates = certificateDAO.findAllPagination(offset, limit);
+        giftCertificates = certificateDAO.findAllPagination(pageNumber, amountEntitiesOnThePage);
         for (Map.Entry<String, String> parameter : parameters.entrySet()) {
             giftCertificates = Arrays.stream(HandlerType.values())
-                    .filter(handlerType -> handlerType.getParameterName().equals(parameter.getKey().toLowerCase()))
+                    .filter(handlerType -> handlerType.getParameterName().equals(parameter.getKey()))
                     .findAny().orElseThrow(RuntimeException::new)
                     .handle(giftCertificates, parameter.getValue());
         }
         return giftCertificates;
     }
 
-    private void checkLimitAndOffset(List<String> errorMessage, long offset, long limit) {
-        if (offset < 0) {
-            errorMessage.add(translator.toLocale("THE_OFFSET_SHOULD_BE_MORE_THAN_0"));
+    private void checkLimitAndOffset(List<String> errorMessage, int pageNumber, int amountEntitiesOnThePage) {
+        if (pageNumber < 0) {
+            errorMessage.add(translator.toLocale("THE_PAGE_NUMBER_SHOULD_BE_MORE_THAN_0"));
         }
-        if (limit < 0) {
-            errorMessage.add(translator.toLocale("THE_LIMIT_SHOULD_BE_MORE_THAN_0"));
+        if (amountEntitiesOnThePage < 0) {
+            errorMessage.add(translator.toLocale("THE_AMOUNT_ENTITIES_ON_THE_PAGE_SHOULD_BE_MORE_THAN_0"));
         }
         if (!errorMessage.isEmpty()) {
             throw new MethodArgumentNotValidException(
-                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_CERTIFICATE_NOT_VALID, errorMessage);
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_TAG_NOT_VALID, errorMessage);
         }
     }
 
@@ -202,10 +226,12 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     private void fillValidateAndUpdateGiftCertificate(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
-        fillCertificateValues(giftCertificate, giftCertificateFromDB);
+        saveNewTagsInDatabase(giftCertificate, giftCertificateFromDB.getId());
+        for (CertificateTag tag : giftCertificate.getTags()) {
+            tagValidator.validateTag(tag, true);
+        }
+        giftCertificate = fillCertificateValues(giftCertificate, giftCertificateFromDB);
         certificateValidator.validateCertificate(giftCertificate, false);
-        giftCertificate.setLastUpdateDate(LocalDateTime.now());
-        giftCertificate.setId(giftCertificateFromDB.getId());
         certificateDAO.update(giftCertificate);
         updateHasTagTable(giftCertificate, giftCertificateFromDB);
     }
@@ -269,7 +295,8 @@ public class CertificateServiceImpl implements CertificateService {
         return isPresentInCertificateTagsToUpdate;
     }
 
-    private void fillCertificateValues(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
+    private GiftCertificate fillCertificateValues(GiftCertificate giftCertificate, GiftCertificate giftCertificateFromDB) {
+        giftCertificate.setId(giftCertificateFromDB.getId());
         if (giftCertificate.getName() == null) {
             giftCertificate.setName(giftCertificateFromDB.getName());
         }
@@ -286,7 +313,10 @@ public class CertificateServiceImpl implements CertificateService {
             giftCertificate.setTags(giftCertificateFromDB.getTags());
         }
         giftCertificate.setCreateDate(giftCertificateFromDB.getCreateDate());
-        giftCertificate.setLastUpdateDate(giftCertificateFromDB.getLastUpdateDate());
+        giftCertificate.setLastUpdateDate(LocalDateTime.now());
+        return new GiftCertificate(giftCertificate.getId(), giftCertificate.getName(),
+                giftCertificate.getDescription(), giftCertificate.getPrice(), giftCertificate.getDuration(),
+                giftCertificate.getCreateDate(), LocalDateTime.now(), giftCertificate.getTags());
     }
 
     /**

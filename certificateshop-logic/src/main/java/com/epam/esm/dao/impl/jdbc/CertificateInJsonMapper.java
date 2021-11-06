@@ -1,8 +1,7 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.springframework.jdbc.core.RowMapper;

@@ -74,9 +74,9 @@ public interface OrderDao extends Dao<Order> {
     /**
      * Finds all {@link Order} entity in the database.
      *
-     * @param offset is the offset query parameter.
-     * @param limit  is the limit query parameter.
+     * @param pageNumber is the pageNumber query parameter.
+     * @param amountEntitiesOnThePage  is the amountEntitiesOnThePage query parameter.
      * @return List of the {@link Order} objects.
      */
-    List<Order> findAllPagination(long offset, long limit);
+    List<Order> findAllPagination(int pageNumber, int amountEntitiesOnThePage);
 }

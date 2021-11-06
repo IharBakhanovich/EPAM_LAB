@@ -5,7 +5,7 @@ import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.UserDao;
-import com.epam.esm.dao.impl.ColumnNames;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
 import com.epam.esm.model.impl.GiftCertificate;
@@ -176,22 +176,23 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> findAllOrders(Map<String, String> parameters) {
         List<String> errorMessage = new ArrayList<>();
-        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
-        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
-        checkLimitAndOffset(errorMessage, offset, limit);
-        return orderDao.findAllPagination(offset, limit);
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage = Integer.parseInt(parameters.get(
+                ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        checkLimitAndOffset(errorMessage, pageNumber, amountEntitiesOnThePage);
+        return orderDao.findAllPagination(pageNumber, amountEntitiesOnThePage);
     }
 
-    private void checkLimitAndOffset(List<String> errorMessage, long offset, long limit) {
-        if (offset < 0) {
-            errorMessage.add(translator.toLocale("THE_OFFSET_SHOULD_BE_MORE_THAN_0"));
+    private void checkLimitAndOffset(List<String> errorMessage, int pageNumber, int amountEntitiesOnThePage) {
+        if (pageNumber < 0) {
+            errorMessage.add(translator.toLocale("THE_PAGE_NUMBER_SHOULD_BE_MORE_THAN_0"));
         }
-        if (limit < 0) {
-            errorMessage.add(translator.toLocale("THE_LIMIT_SHOULD_BE_MORE_THAN_0"));
+        if (amountEntitiesOnThePage < 0) {
+            errorMessage.add(translator.toLocale("THE_AMOUNT_ENTITIES_ON_THE_PAGE_SHOULD_BE_MORE_THAN_0"));
         }
-        if (!errorMessage.isEmpty()) {
+        if(!errorMessage.isEmpty()) {
             throw new MethodArgumentNotValidException(
-                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_TAG_NOT_VALID, errorMessage);
         }
     }
 

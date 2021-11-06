@@ -1,5 +1,6 @@
 package com.epam.esm.service.handler;
 
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.GiftCertificate;
 
 import java.util.Comparator;
@@ -20,13 +21,13 @@ public enum HandlerType {
                     .collect(Collectors.toList());
         }
     },
-    BY_OFFSET("offset") {
+    BY_OFFSET(ColumnNames.PAGE_NUMBER_PARAM_NAME) {
         @Override
         public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
             return certificates;
         }
     },
-    BY_LIMIT("limit") {
+    BY_LIMIT(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME) {
         @Override
         public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
             return certificates;

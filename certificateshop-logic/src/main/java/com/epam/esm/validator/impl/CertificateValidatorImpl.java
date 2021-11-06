@@ -35,7 +35,7 @@ public class CertificateValidatorImpl implements CertificateValidator {
     /**
      * Validates {@link GiftCertificate}.
      *
-     * @param giftCertificate is {@link GiftCertificate} to validate.
+     * @param giftCertificate         is {@link GiftCertificate} to validate.
      * @param isEmptyFieldsAreChecked is the boolean to show whether the empty fields must be validated.
      */
     @Override
@@ -45,17 +45,17 @@ public class CertificateValidatorImpl implements CertificateValidator {
             checkEmptyFields(giftCertificate, errorMessage);
         }
 
-        if (!isNameValid(giftCertificate.getName(), 30)) {
+        if (giftCertificate.getName() != null && !isNameValid(giftCertificate.getName(), 30)) {
             errorMessage.add(translator.toLocale(
                     "CERTIFICATE_NAME_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_30_SIGNS_LONG"));
         }
 
-        if (!isDescriptionValid(giftCertificate.getDescription(), 320)) {
+        if (giftCertificate.getName() != null && !isDescriptionValid(giftCertificate.getDescription(), 320)) {
             errorMessage.add(translator.toLocale(
                     "CERTIFICATE_DESCRIPTION_SHOULD_CONTAIN_ONLY_LATIN_LETTERS_AND_SHOULD_BE_NOT_MORE_THAN_320_SIGNS_LONG"));
         }
 
-        if (!isPriceValid(giftCertificate.getPrice())) {
+        if (giftCertificate.getPrice() != null && !isPriceValid(giftCertificate.getPrice())) {
             errorMessage.add(translator.toLocale("PRICE_CAN_NOT_BE_LESS_THAN_0"));
         }
 

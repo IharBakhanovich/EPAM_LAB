@@ -1,4 +1,4 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;

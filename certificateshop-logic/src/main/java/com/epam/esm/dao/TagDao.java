@@ -19,11 +19,12 @@ public interface TagDao extends Dao<CertificateTag> {
     /**
      * Finds all {@link CertificateTag} entity in the database.
      *
-     * @param offset is the value of the records, which should be passed before fetching the data.
-     * @param limit  is the value of the records, which should be fetched from the database.
+     * @param pageNumber              is the number of the page.
+     * @param amountEntitiesOnThePage is the value of the records,
+     *                                which should be fetched from the database and showed on the page.
      * @return List of the {@link CertificateTag} objects.
      */
-    List<CertificateTag> findAllPagination(long offset, long limit);
+    List<CertificateTag> findAllPagination(int pageNumber, int amountEntitiesOnThePage);
 
     /**
      * Finds all {@link CertificateTag} entity in the database.

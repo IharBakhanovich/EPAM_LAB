@@ -1,9 +1,10 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.model.impl.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,8 +13,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+@Profile("dev")
 @Repository
-public class UserDaoImpl implements UserDao {
+public class JdbcUserDaoImpl implements UserDao {
     //    private static final String FIND_ALL_ENTITIES_SQL = "select user.id as userId, user.nickName as userNickName from user";
     private static final String FIND_ALL_ENTITIES_SQL
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
@@ -57,7 +59,7 @@ public class UserDaoImpl implements UserDao {
     @Autowired
     private UserExtractor userExtractor;
 
-    public UserDaoImpl() {
+    public JdbcUserDaoImpl() {
     }
 
     /**
@@ -111,13 +113,14 @@ public class UserDaoImpl implements UserDao {
     /**
      * Finds all {@link User} entity in the database.
      *
-     * @param offset is the offset query parameter.
-     * @param limit  is the limit query parameter.
+     * @param pageNumber              is the offset query parameter.
+     * @param amountEntitiesOnThePage is the limit query parameter.
      * @return List of the {@link User} objects.
      */
     @Override
-    public List<User> findAllPagination(long offset, long limit) {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_PAGINATION_SQL, userExtractor, offset, limit);
+    public List<User> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_PAGINATION_SQL, userExtractor,
+                pageNumber * amountEntitiesOnThePage, amountEntitiesOnThePage);
     }
 
     /**

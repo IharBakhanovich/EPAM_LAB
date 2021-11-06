@@ -1,4 +1,4 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,64 +29,70 @@ public class ColumnNames {
     public static final String TABLE_USERORDER_COLUMN_CREATE_DATE = "orderCreateDate";
     public static final String TABLE_USERORDER_COLUMN_NAME = "orderName";
     // default value in the system. Sets how many records on the page will be shown.
-    public static final String DEFAULT_ENTITIES_ON_THE_PAGE = "5";
+    public static final String DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE = "5";
     public static final Map<String, String> DEFAULT_PARAMS = new HashMap<String, String>(){{
-        put("offset", "0");
-        put("limit", DEFAULT_ENTITIES_ON_THE_PAGE);
+        put(PAGE_NUMBER_PARAM_NAME, "0");
+        put(AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME, DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
     }};
-    public static final String OFFSET_PARAM_NAME = "offset";
-    public static final String LIMIT_PARAM_NAME = "limit";
+    public static final String PAGE_NUMBER_PARAM_NAME = "pageNumber";
+    public static final String AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME = "amountOfEntitiesOnThePage";
 
 
 
     /**
      * To use in controllers.
      *
-     * @param certificates
-     * @param offset
-     * @param limit
+     * @param entities
+     * @param pageNumber
+     * @param amountOfEntitesOnThePage
      * @return
      */
-    public static<T> Map<String, String> createNextParameters(List<T> certificates, long offset, long limit) {
-        long nextOffset = 0;
+    public static<T> Map<String, String> createNextParameters(List<T> entities, int pageNumber, int amountOfEntitesOnThePage) {
+        int nextPageNumber = 0;
         Map<String, String> paramsNext = new HashMap<>();
-        if (limit == certificates.size()) {
-            nextOffset = offset + limit;
+        if (amountOfEntitesOnThePage == entities.size()) {
+            nextPageNumber = pageNumber + 1;
+        } else {
+            nextPageNumber = pageNumber;
         }
-        paramsNext.put("offset", String.valueOf(nextOffset));
-        setLimit(limit, paramsNext);
+        paramsNext.put(ColumnNames.PAGE_NUMBER_PARAM_NAME, String.valueOf(nextPageNumber));
+        setLimit(amountOfEntitesOnThePage, paramsNext);
         return paramsNext;
     }
 
-    public static<T> Map<String, String> createPrevParameters(List<T> certificates, long offset, long limit) {
+    public static<T> Map<String, String> createPrevParameters(List<T> certificates, int pageNumber, int amountOfEntitiesOnThePage) {
         Map<String, String> paramsPrev = new HashMap<>();
-        long prevOffset = 0;
-        if (offset - 2*limit >= 0) {
-            prevOffset = offset - limit;
+        int prevPageNumber = 0;
+        if (pageNumber > 0) {
+            prevPageNumber = pageNumber - 1;
+        } else {
+            prevPageNumber = pageNumber;
         }
-        paramsPrev.put("offset", String.valueOf(prevOffset));
-        setLimit(limit, paramsPrev);
+        paramsPrev.put(ColumnNames.PAGE_NUMBER_PARAM_NAME, String.valueOf(prevPageNumber));
+        setLimit(amountOfEntitiesOnThePage, paramsPrev);
         return paramsPrev;
     }
 
-    private static void setLimit(long limit, Map<String, String> paramsNext) {
-        if (limit != 0) {
-            paramsNext.put("limit", String.valueOf(limit));
+    private static void setLimit(int amountOfEntitiesOnThePage, Map<String, String> paramsNext) {
+        if (amountOfEntitiesOnThePage != 0) {
+            paramsNext.put(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME,
+                    String.valueOf(amountOfEntitiesOnThePage));
         } else {
-            paramsNext.put("limit", DEFAULT_ENTITIES_ON_THE_PAGE);
+            paramsNext.put(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME, DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
         }
     }
 
     /**
-     * Sets 'offset' and 'limit' query parameters if they are not sett.
+     * Sets 'offset' and 'limit' query parameters if they are not set.
      *
      * @param parameters the map to validate.
      * @return parameters of the query.
      */
-    public static Map<String, String> validateParameters(Map<String, String> parameters, String defaultLimit) {
+    public static Map<String, String> validateParameters(Map<String, String> parameters,
+                                                         String defaultAmountEntitiesOnThePage) {
         if(parameters.size() == 0) {
-            parameters.put("offset", "0");
-            parameters.put("limit", defaultLimit);
+            parameters.put(ColumnNames.PAGE_NUMBER_PARAM_NAME, "0");
+            parameters.put(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME, defaultAmountEntitiesOnThePage);
         }
         return parameters;
     }

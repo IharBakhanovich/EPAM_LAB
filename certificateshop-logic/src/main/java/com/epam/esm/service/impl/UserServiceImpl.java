@@ -5,7 +5,7 @@ import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.UserDao;
-import com.epam.esm.dao.impl.ColumnNames;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dto.OrderDto;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
@@ -106,10 +106,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAllUsers(Map<String, String> parameters) {
         List<String> errorMessage = new ArrayList<>();
-        long offset = Long.parseLong(parameters.get(ColumnNames.OFFSET_PARAM_NAME));
-        long limit = Long.parseLong(parameters.get(ColumnNames.LIMIT_PARAM_NAME));
-        checkLimitAndOffset(errorMessage, offset, limit);
-        List<User> users = userDao.findAllPagination(offset, limit);
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        checkLimitAndOffset(errorMessage, pageNumber, amountEntitiesOnThePage);
+        List<User> users = userDao.findAllPagination(pageNumber, amountEntitiesOnThePage);
         return users;
     }
 

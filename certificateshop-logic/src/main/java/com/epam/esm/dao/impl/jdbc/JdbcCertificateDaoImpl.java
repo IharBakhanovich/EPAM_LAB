@@ -1,4 +1,4 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.model.impl.CertificateTag;
@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -15,16 +16,16 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.ToDoubleBiFunction;
 
 /**
  * The class that implements the CertificateDAO interface.
  */
+@Profile("dev")
 @Repository
 @Component("certificateDAO")
-public class CertificateDaoImpl implements CertificateDao {
+public class JdbcCertificateDaoImpl implements CertificateDao {
 
-    private static final Logger LOGGER = LogManager.getLogger(CertificateDaoImpl.class);
+    private static final Logger LOGGER = LogManager.getLogger(JdbcCertificateDaoImpl.class);
 
     private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
             = "select c.id as certificateId, c.name as certificateName," +
@@ -84,7 +85,7 @@ public class CertificateDaoImpl implements CertificateDao {
     @Qualifier("certificateMapper")
     private RowMapper<GiftCertificate> certificateMapper;
 
-    public CertificateDaoImpl() {
+    public JdbcCertificateDaoImpl() {
     }
 
     /**
@@ -117,13 +118,16 @@ public class CertificateDaoImpl implements CertificateDao {
     /**
      * Returns all the {@link GiftCertificate}s in the database.
      *
-     * @param offset is the offset query parameter.
-     * @param limit  is the limit query parameter.
+     * @param pageNumber              is the pageNumber query parameter.
+     * @param amountEntitiesOnThePage is the amountEntitiesOnThePage query parameter.
      * @return {@link List<GiftCertificate>}.
      */
     @Override
-    public List<GiftCertificate> findAllPagination(long offset, long limit) {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, giftCertificateExtractor, offset, limit);
+    public List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
+        List<GiftCertificate> giftCertificates =
+        jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, giftCertificateExtractor,
+                pageNumber * amountEntitiesOnThePage, amountEntitiesOnThePage);
+        return giftCertificates;
     }
 
     /**

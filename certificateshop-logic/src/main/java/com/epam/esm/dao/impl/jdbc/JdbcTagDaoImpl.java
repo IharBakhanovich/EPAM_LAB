@@ -1,4 +1,4 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.dao.impl.jdbc;
 
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.exception.DuplicateException;
@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -19,9 +20,10 @@ import java.util.Optional;
 /**
  * The class that implements the {@link TagDao} interface.
  */
+@Profile("dev")
 @Component
-public class TagDaoImpl implements TagDao {
-    private static final Logger LOGGER = LogManager.getLogger(CertificateDaoImpl.class);
+public class JdbcTagDaoImpl implements TagDao {
+    private static final Logger LOGGER = LogManager.getLogger(JdbcCertificateDaoImpl.class);
 
     private static final String FIND_ALL_ENTITIES_SQL_PAGINATION = "select tag.id as tagId, tag.name as tagName from tag" +
             " WHERE tag.id IN (select * from (select id from tag order by id LIMIT ?, ?) as query1)";
@@ -58,7 +60,7 @@ public class TagDaoImpl implements TagDao {
     @Qualifier("certificateTagMapper")
     private RowMapper<CertificateTag> certificateTagRowMapper;
 
-    private TagDaoImpl() {
+    private JdbcTagDaoImpl() {
     }
 
     /**
@@ -82,13 +84,14 @@ public class TagDaoImpl implements TagDao {
     /**
      * Finds all {@link CertificateTag} entity in the database.
      *
-     * @param offset is the value of the records, which should be passed before fetching the data.
-     * @param limit is the value of the records, which should be fetched from the database.
+     * @param pageNumber is the value of the records, which should be passed before fetching the data.
+     * @param amountEntitiesOnThePage is the value of the records, which should be fetched from the database.
      * @return List of the {@link CertificateTag} objects.
      */
     @Override
-    public List<CertificateTag> findAllPagination(long offset, long limit) {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, certificateTagRowMapper, offset, limit);
+    public List<CertificateTag> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, certificateTagRowMapper,
+                pageNumber*amountEntitiesOnThePage, amountEntitiesOnThePage);
     }
 
     //TODO delete at the end
