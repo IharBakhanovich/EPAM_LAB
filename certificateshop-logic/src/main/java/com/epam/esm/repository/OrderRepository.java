@@ -10,6 +10,5 @@ import javax.transaction.Transactional;
 
 @Repository
 @Transactional
-public interface OrderRepository extends CrudRepository<Order, Long>,
-        JpaRepository<Order, Long> {
+public interface OrderRepository extends CrudRepository<Order, Long>, JpaRepository<Order, Long> {
 }

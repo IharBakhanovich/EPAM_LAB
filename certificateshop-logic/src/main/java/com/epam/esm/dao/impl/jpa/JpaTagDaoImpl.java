@@ -79,12 +79,6 @@ public class JpaTagDaoImpl implements TagDao {
             certificateTags.add(new CertificateTag(id, name));
         }
         return certificateTags;
-
-
-//        return certificateTagRepository
-//                .findAll(PageRequest.of(pageNumber / amountEntitiesOnThePage,
-//                        amountEntitiesOnThePage, Sort.by(Sort.Direction.ASC, "id")))
-//                .getContent();
     }
 
     /**
@@ -108,7 +102,6 @@ public class JpaTagDaoImpl implements TagDao {
         return entityManager
                 .createQuery("select t from Tag t where t.id = :id", CertificateTag.class)
                 .setParameter("id", id).getResultList().stream().findFirst();
-//        return certificateTagRepository.findById(id);
     }
 
     /**
@@ -122,7 +115,6 @@ public class JpaTagDaoImpl implements TagDao {
         entityManager.createQuery("UPDATE Tag t set t.name = :name where t.id = :id")
                 .setParameter("name", entity.getName()).setParameter("id", entity.getId()).executeUpdate();
         entityManager.refresh(tag);
-//        certificateTagRepository.update(entity.getName(), entity.getId());
     }
 
     /**
@@ -136,7 +128,6 @@ public class JpaTagDaoImpl implements TagDao {
                 .createQuery("delete from Tag t where t.id = :id")
                 .setParameter("id", id)
                 .executeUpdate();
-//        certificateTagRepository.deleteById(id);
     }
 
     /**
@@ -161,7 +152,6 @@ public class JpaTagDaoImpl implements TagDao {
         return entityManager
                 .createQuery("select t from Tag t where t.name = :name", CertificateTag.class)
                 .setParameter("name", name).getResultList().stream().findFirst();
-//        return certificateTagRepository.findCertificateTagByName(name);
     }
 
     /**

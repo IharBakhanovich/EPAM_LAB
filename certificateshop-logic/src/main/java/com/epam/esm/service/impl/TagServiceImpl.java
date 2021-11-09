@@ -47,8 +47,9 @@ public class TagServiceImpl implements TagService {
     public CertificateTag createCertificateTag(CertificateTag certificateTag) {
         checkTagIfExistInSystem(certificateTag);
         tagValidator.validateTag(certificateTag, true);
-        tagDAO.save(certificateTag);
-        return findCertificateTagByName(certificateTag.getName());
+        CertificateTag certificateTag1 = new CertificateTag(0, certificateTag.getName());
+        tagDAO.save(certificateTag1);
+        return findCertificateTagByName(certificateTag1.getName());
     }
 
     private void checkTagIfExistInSystem(CertificateTag certificateTag) {
@@ -56,10 +57,6 @@ public class TagServiceImpl implements TagService {
         if (tagDAO.findByName(certificateTag.getName()).isPresent()) {
             errorMessage.add(String.format(translator
                     .toLocale("TAG_WITH_SUCH_NAME_EXIST_IN_DB_MESSAGE"), certificateTag.getName()));
-        }
-        if (tagDAO.findById(certificateTag.getId()).isPresent()) {
-            errorMessage.add(String.format(translator
-                    .toLocale("TAG_WITH_SUCH_ID_IS_ALREADY_EXIST_IN_THE_SYSTEM"), certificateTag.getId()));
         }
         if (!errorMessage.isEmpty()) {
             throw new DuplicateException(ERROR_CODE_DUPLICATE + ERROR_CODE_TAG_NOT_VALID, errorMessage);
@@ -133,9 +130,7 @@ public class TagServiceImpl implements TagService {
         fillCertificateTagValues(certificateTag, certificateTagFromDB, tagId);
         tagValidator.validateTag(certificateTag, false);
         tagDAO.update(certificateTag);
-        CertificateTag tag = tagDAO.findById(tagId).get();
-        return tag;
-//        return certificateTag;
+        return tagDAO.findById(tagId).get();
     }
 
     private void checkId(long tagId) {

@@ -60,7 +60,6 @@ public class Order implements DatabaseEntity, Serializable {
     private long id;
     @JoinColumn(name = "userid")
     @ManyToOne (fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-//    @Target(User.class)
     private User user;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     @Column(name = "create_date", updatable = false)
@@ -69,16 +68,6 @@ public class Order implements DatabaseEntity, Serializable {
     @Column(name = "name", unique = true, nullable = false)
     @NotNull
     private String name;
-//    @JoinTable(name = "userorder_certificate",
-//            joinColumns = {@JoinColumn(name = "userOrderId"), @JoinColumn(name = "certificateId")}
-//    ) //TODO или так?
-//    @ManyToMany @JoinTable(name = "userorder_certificate",
-//            joinColumns = {@JoinColumn(name = "userorderid", referencedColumnName = "id")},
-//            inverseJoinColumns = {@JoinColumn(name = "certificateid", referencedColumnName = "id")}
-//    )
-    //TODO а нужна ли здесь ассоциация, если сертификаты берем из другой таблицы для которой не имеем энтити класс в системе?
     @Convert(converter = CertificateFromJsonConverter.class)
-//    @Column(name = "certificateInJSON")
-    //TODO is it right? Как мне сказать, что при сохранении нужно сохранять в JSON в отдельный столбец?
     private List<GiftCertificate> certificates;
 }

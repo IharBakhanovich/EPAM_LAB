@@ -169,7 +169,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private void addOrdersToUser(User user, User createdUser, Order order, List<String> errorMessage) {
-        //checkIfSertificatesExist(order, errorMessage);
         String name = orderService.generateUniqueOrderName(user);
         Order newOrder = new Order(0, createdUser, LocalDateTime.now(), name, new ArrayList<>());
         orderDao.save(newOrder);

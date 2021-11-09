@@ -176,10 +176,6 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
-//        return entityManager.createNativeQuery(FIND_ALL_ENTITIES_PAGINATION_SQL, User.class)
-//                .setParameter(1, pageNumber * amountEntitiesOnThePage)
-//                .setParameter(2, amountEntitiesOnThePage).getResultList();
-
         Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_PAGINATION_SQL)
                 .setParameter(1, pageNumber * amountEntitiesOnThePage)
                 .setParameter(2, amountEntitiesOnThePage);

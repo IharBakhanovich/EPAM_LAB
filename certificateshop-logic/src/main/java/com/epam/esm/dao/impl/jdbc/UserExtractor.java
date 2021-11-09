@@ -105,12 +105,6 @@ public class UserExtractor implements ResultSetExtractor<List<User>> {
         if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
             GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
             newOrder.getCertificates().add(giftCertificate);
-//            users.stream()
-//                    .filter(user1 -> user1.getId() == currentId)
-//                    .findAny().ifPresent(user1 -> user1.getOrders()
-//                            .stream()
-//                            .filter(order -> order.getId() == currentOrderId)
-//                            .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate)));
         }
     }
 }

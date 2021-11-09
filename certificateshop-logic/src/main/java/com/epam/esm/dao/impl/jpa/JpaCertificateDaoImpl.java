@@ -83,11 +83,6 @@ public class JpaCertificateDaoImpl implements CertificateDao {
         List<Object[]> resultList = query.getResultList();
         List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
         return getEntities(result);
-//        return giftCertificateRepository
-//                .findAll(PageRequest.of(pageNumber,
-//                        amountEntitiesOnThePage, Sort.by(Sort.Direction.ASC, "id")))
-//                .getContent();
-
     }
 
     private List<GiftCertificate> getEntities(List<List<Object>> result) {
@@ -133,7 +128,6 @@ public class JpaCertificateDaoImpl implements CertificateDao {
                 .createQuery("select c from Certificate c where c.id = :id", GiftCertificate.class)
                 .setParameter("id", id)
                 .getResultList().stream().findFirst();
-//        return giftCertificateRepository.findById(id);
     }
 
     /**
@@ -149,7 +143,6 @@ public class JpaCertificateDaoImpl implements CertificateDao {
         giftCertificate.setPrice(entity.getPrice());
         giftCertificate.setDuration(entity.getDuration());
         giftCertificate.setTags(entity.getTags());
-        //giftCertificateRepository.save(entity);
     }
 
     /**

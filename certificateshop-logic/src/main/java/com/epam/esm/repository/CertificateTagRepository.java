@@ -35,9 +35,6 @@ public interface CertificateTagRepository extends CrudRepository<CertificateTag,
     @Query("update Tag t set t.name = ?1 where t.id = ?2")
     void update(String name, long id);
 
-//    @Query(value = FIND_MOST_POPULAR_TAG_BY_THE_BEST_USER, nativeQuery = true)
-//    Optional<CertificateTag> popularTagOfBestUser();
-
     @Query("select t from Tag t where t.name = :name")
     Optional<CertificateTag> findCertificateTagByName(@Param("name") String name);
 

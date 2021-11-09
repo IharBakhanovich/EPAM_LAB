@@ -66,23 +66,6 @@ public class LogicConfig extends AcceptHeaderLocaleResolver
                 .build();
     }
 
-//    @Profile("dev")
-//    @Bean
-//    public DataSource dataSource() {
-//        HikariConfig config = new HikariConfig();
-//        config.setDriverClassName(environment.getRequiredProperty(DRIVER_PROPERTY_NAME));
-//        config.setJdbcUrl(environment.getRequiredProperty(DB_MYSQL_PATH_PROPERTY_NAME)
-//                + environment.getRequiredProperty(DB_SERVER_PROPERTY_NAME)
-//                + ":"
-//                + environment.getRequiredProperty(DB_PORT_PROPERTY_NAME)
-//                + "/"
-//                + environment.getRequiredProperty(DB_NAME_PROPERTY_NAME));
-//        config.setUsername(environment.getRequiredProperty(DB_USER_PROPERTY_NAME));
-//        config.setPassword(environment.getRequiredProperty(DB_PASSWORD_PROPERTY_NAME));
-//        config.setMaximumPoolSize(environment.getProperty(DB_MAX_CONNECTIONS_PROPERTY_NAME, Integer.class, 30));
-//        return new HikariDataSource(config);
-//    }
-
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
         String headerLang = request.getHeader("Accept-Language");

@@ -16,7 +16,6 @@ import java.util.Optional;
 @Profile("dev")
 @Repository
 public class JdbcUserDaoImpl implements UserDao {
-    //    private static final String FIND_ALL_ENTITIES_SQL = "select user.id as userId, user.nickName as userNickName from user";
     private static final String FIND_ALL_ENTITIES_SQL
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
@@ -39,16 +38,12 @@ public class JdbcUserDaoImpl implements UserDao {
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId where u.id = ?";
-    //    private static final String FIND_ENTITY_BY_ID_SQL
-//            = "select user.id as userId, user.nickName as userNickName from user where id = ?";
     private static final String FIND_ENTITY_BY_NAME_SQL
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId where u.nickName = ?";
-//    private static final String FIND_ENTITY_BY_NAME_SQL
-//            = "select user.id as userId, user.nickName as userNickName from user where nickName = ?";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
