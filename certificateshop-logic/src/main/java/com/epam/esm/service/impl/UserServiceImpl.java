@@ -21,6 +21,7 @@ import com.epam.esm.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
     public static final String ERROR_CODE_DUPLICATE = "409";
     public static final String ERROR_CODE_ENTITY_NOT_FOUND = "404";
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
     public static final String ERROR_CODE_CERTIFICATE_NOT_VALID = "01";
     public static final String ERROR_CODE_TAG_NOT_VALID = "02";
     public static final String ERROR_CODE_USER_NOT_VALID = "04";
+    public static final String ERROR_CODE_ORDER_NOT_VALID = "03";
 
     private final UserDao userDao;
     private final CertificateDao certificateDAO;
@@ -134,23 +137,28 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         List<String> errorMessage = new ArrayList<>();
-        if (user.getNickName() != null) {
+        if (user.getNickName() != null && !user.getNickName().trim().equals("")) {
             checkIfUserExistInSystem(user, errorMessage);
             if (user.getOrders() == null || user.getOrders().isEmpty()) {
                 return createNewUser(user);
             } else {
                 for (Order order : user.getOrders()) {
+                    if (order.getCertificates() == null || order.getCertificates().isEmpty()) {
+                        errorMessage.add(translator.toLocale("CERTIFICATES_IN_ORDER_SHOULD_BE_NOT_EMPTY"));
+                        throw new MethodArgumentNotValidException(
+                                ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_USER_NOT_VALID, errorMessage);
+                    }
                     for (GiftCertificate certificate : order.getCertificates()) {
                         checkCertificateId(errorMessage, certificate);
                     }
                 }
                 if (!errorMessage.isEmpty()) {
-                    throw new EntityNotFoundException(
+                    throw new MethodArgumentNotValidException(
                             ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_USER_NOT_VALID, errorMessage);
                 }
                 User createdUser = createNewUser(user);
                 for (Order order : user.getOrders()) {
-                    addOrdersToUser(user, createdUser, order);
+                    addOrdersToUser(user, createdUser, order, errorMessage);
                 }
             }
         } else {
@@ -160,23 +168,36 @@ public class UserServiceImpl implements UserService {
         return userDao.findByName(user.getNickName()).get();
     }
 
-    private void addOrdersToUser(User user, User createdUser, Order order) {
+    private void addOrdersToUser(User user, User createdUser, Order order, List<String> errorMessage) {
+        //checkIfSertificatesExist(order, errorMessage);
         String name = orderService.generateUniqueOrderName(user);
         Order newOrder = new Order(0, createdUser, LocalDateTime.now(), name, new ArrayList<>());
         orderDao.save(newOrder);
-        Order orderFromDB = orderDao.findByName(name).get();
+        Optional<Order> orderFromDB = orderDao.findByName(name);
         for (GiftCertificate certificate : order.getCertificates()) {
-            GiftCertificate certificateToAddToOrder = certificateDAO.findById(certificate.getId()).get();
-            orderDao.saveIdsInUserorder_certificateTable(
-                    orderFromDB.getId(), certificate.getId(),
-                    certificateToAddToOrder, certificateToAddToOrder.getPrice());
+            Optional<GiftCertificate> certificateToAddToOrder = certificateDAO.findById(certificate.getId());
+            orderDao.saveIdsInUserorder_certificateTable(orderFromDB.get().getId(), certificate.getId(),
+                    certificateToAddToOrder.get(), certificateToAddToOrder.get().getPrice());
+        }
+    }
+
+    private void checkIfSertificatesExist(Order order, List<String> errorMessage) {
+        for (GiftCertificate certificate : order.getCertificates()) {
+            // certificates are found by id
+            Optional<GiftCertificate> certificateToAddToOrder = certificateDAO.findById(certificate.getId());
+            if (!certificateToAddToOrder.isPresent()) {
+                errorMessage.add(String.format(translator
+                        .toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), certificate.getId()));
+                throw new MethodArgumentNotValidException(ERROR_CODE_DUPLICATE + ERROR_CODE_USER_NOT_VALID, errorMessage);
+            }
         }
     }
 
     private User createNewUser(User user) {
         userValidator.validateUser(user, true);
-        userDao.save(user);
-        Optional<User> userFromDB = userDao.findByName(user.getNickName());
+        User userToSave = new User(0, user.getNickName(), user.getOrders());
+        userDao.save(userToSave);
+        Optional<User> userFromDB = userDao.findByName(userToSave.getNickName());
         return userFromDB.get();
     }
 
@@ -234,7 +255,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> userFromDB = userDao.findById(userId);
         Optional<Order> order = getUserIfPresent(userId, userFromDB).getOrders()
                 .stream()
-                .filter(order1 -> order1.getId()==orderId)
+                .filter(order1 -> order1.getId() == orderId)
                 .findFirst();
         if (!order.isPresent()) {
             List<String> errorMessage = new ArrayList<>();
@@ -243,8 +264,7 @@ public class UserServiceImpl implements UserService {
             throw new MethodArgumentNotValidException(
                     ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_USER_NOT_VALID, errorMessage);
         } else {
-            OrderDto orderDto = conversionService.convert(order.get(), OrderDto.class);
-            return orderDto;
+            return conversionService.convert(order.get(), OrderDto.class);
         }
     }
 }

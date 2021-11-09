@@ -133,9 +133,9 @@ public class TagServiceImpl implements TagService {
         fillCertificateTagValues(certificateTag, certificateTagFromDB, tagId);
         tagValidator.validateTag(certificateTag, false);
         tagDAO.update(certificateTag);
-//        CertificateTag tag = tagDAO.findById(tagId).get();
-//        return tag;
-        return certificateTag;
+        CertificateTag tag = tagDAO.findById(tagId).get();
+        return tag;
+//        return certificateTag;
     }
 
     private void checkId(long tagId) {

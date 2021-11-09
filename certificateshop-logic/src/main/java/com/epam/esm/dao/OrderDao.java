@@ -55,7 +55,7 @@ public interface OrderDao extends Dao<Order> {
     /**
      * Finds {@link Optional<Order>} in the database by the id of the {@link Order}.
      *
-     * @param name is the {@link long} to find.
+     * @param name is the {@link String} to find.
      * @return {@link Optional<Order>}.
      */
     Optional<Order> findByName(String name);

@@ -84,21 +84,20 @@ public class JdbcTagDaoImpl implements TagDao {
     /**
      * Finds all {@link CertificateTag} entity in the database.
      *
-     * @param pageNumber is the value of the records, which should be passed before fetching the data.
+     * @param pageNumber              is the value of the records, which should be passed before fetching the data.
      * @param amountEntitiesOnThePage is the value of the records, which should be fetched from the database.
      * @return List of the {@link CertificateTag} objects.
      */
     @Override
     public List<CertificateTag> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
         return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, certificateTagRowMapper,
-                pageNumber*amountEntitiesOnThePage, amountEntitiesOnThePage);
+                pageNumber * amountEntitiesOnThePage, amountEntitiesOnThePage);
     }
 
-    //TODO delete at the end
     /**
-     * Finds all {@link T} entity in the database.
+     * Finds all {@link CertificateTag} entity in the database.
      *
-     * @return List of the {@link T} objects.
+     * @return List of the {@link CertificateTag} objects.
      */
     @Override
     public List<CertificateTag> findAll() {

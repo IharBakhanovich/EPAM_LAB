@@ -8,12 +8,11 @@ import com.epam.esm.model.impl.User;
 import com.epam.esm.repository.CertificateTagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +35,8 @@ public class JpaTagDaoImpl implements TagDao {
                     " FROM userorder_certificate as uoc LEFT OUTER JOIN userorder as uo ON uoc.userOrderId = uo.id" +
                     " GROUP BY userId ORDER BY costAllCertificates DESC) as query1 LIMIT 1)" +
                     " GROUP BY ht.tagId ORDER BY amountOfTag DESC) as query3 LIMIT 1)";
-
+    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION = "select tag.id as tagId, tag.name as tagName from tag" +
+            " WHERE tag.id IN (select * from (select id from tag order by id LIMIT ?, ?) as query1)";
     private CertificateTagRepository certificateTagRepository;
     private EntityManager entityManager;
 
@@ -55,7 +55,8 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public void save(CertificateTag entity) throws DuplicateException {
-        certificateTagRepository.save(entity);
+        entityManager.persist(entity);
+//        certificateTagRepository.save(entity);
     }
 
     /**
@@ -67,10 +68,23 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public List<CertificateTag> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
-        return certificateTagRepository
-                .findAll(PageRequest.of(pageNumber / amountEntitiesOnThePage,
-                        amountEntitiesOnThePage, Sort.by(Sort.Direction.ASC, "id")))
-                .getContent();
+        Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_SQL_PAGINATION);
+        query.setParameter(1, pageNumber * amountEntitiesOnThePage);
+        query.setParameter(2, amountEntitiesOnThePage);
+        List<Object[]> tags = query.getResultList();
+        List<CertificateTag> certificateTags = new ArrayList<>();
+        for (Object[] object : tags) {
+            long id = Long.valueOf((int)object[0]);
+            String name = (String) object[1];
+            certificateTags.add(new CertificateTag(id, name));
+        }
+        return certificateTags;
+
+
+//        return certificateTagRepository
+//                .findAll(PageRequest.of(pageNumber / amountEntitiesOnThePage,
+//                        amountEntitiesOnThePage, Sort.by(Sort.Direction.ASC, "id")))
+//                .getContent();
     }
 
     /**
@@ -91,7 +105,10 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public Optional<CertificateTag> findById(long id) {
-        return certificateTagRepository.findById(id);
+        return entityManager
+                .createQuery("select t from Tag t where t.id = :id", CertificateTag.class)
+                .setParameter("id", id).getResultList().stream().findFirst();
+//        return certificateTagRepository.findById(id);
     }
 
     /**
@@ -101,10 +118,11 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public void update(CertificateTag entity) {
-//        entityManager.createQuery("UPDATE Tag t set t.name = :name where t.id = :id")
-//                .setParameter("name", entity.getName()).setParameter("id", entity.getId()).executeUpdate();
-
-        certificateTagRepository.update(entity.getName(), entity.getId());
+        CertificateTag tag = entityManager.find(CertificateTag.class, entity.getId());
+        entityManager.createQuery("UPDATE Tag t set t.name = :name where t.id = :id")
+                .setParameter("name", entity.getName()).setParameter("id", entity.getId()).executeUpdate();
+        entityManager.refresh(tag);
+//        certificateTagRepository.update(entity.getName(), entity.getId());
     }
 
     /**
@@ -114,7 +132,11 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public void delete(long id) {
-        certificateTagRepository.deleteById(id);
+        entityManager
+                .createQuery("delete from Tag t where t.id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
+//        certificateTagRepository.deleteById(id);
     }
 
     /**
@@ -136,7 +158,10 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public Optional<CertificateTag> findByName(String name) {
-        return certificateTagRepository.findCertificateTagByName(name);
+        return entityManager
+                .createQuery("select t from Tag t where t.name = :name", CertificateTag.class)
+                .setParameter("name", name).getResultList().stream().findFirst();
+//        return certificateTagRepository.findCertificateTagByName(name);
     }
 
     /**

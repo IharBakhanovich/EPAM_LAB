@@ -59,7 +59,7 @@ public class Order implements DatabaseEntity, Serializable {
     @Column(name = "id", updatable = false)
     private long id;
     @JoinColumn(name = "userid")
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
 //    @Target(User.class)
     private User user;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")

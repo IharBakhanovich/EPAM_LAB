@@ -190,7 +190,7 @@ public class OrderServiceImpl implements OrderService {
         if (amountEntitiesOnThePage < 0) {
             errorMessage.add(translator.toLocale("THE_AMOUNT_ENTITIES_ON_THE_PAGE_SHOULD_BE_MORE_THAN_0"));
         }
-        if(!errorMessage.isEmpty()) {
+        if (!errorMessage.isEmpty()) {
             throw new MethodArgumentNotValidException(
                     ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_TAG_NOT_VALID, errorMessage);
         }
@@ -206,6 +206,10 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(Order order) {
         List<String> errorMessage = new ArrayList<>();
         checkUserIdAndCertificatesId(order, errorMessage);
+        if (order.getCertificates() == null || order.getCertificates().isEmpty()) {
+            errorMessage.add(translator.toLocale("CERTIFICATES_IN_ORDER_SHOULD_BE_NOT_EMPTY"));
+            throw new MethodArgumentNotValidException(ERROR_CODE_DUPLICATE + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+        }
         if (order.getCertificates().size() == 1) {
             orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId());
         }
@@ -213,6 +217,7 @@ public class OrderServiceImpl implements OrderService {
         String newOrderName = createNewOrder(order, userFromDatabase);
         Order orderFromDB = orderDao.findByName(newOrderName).get();
         for (GiftCertificate certificate : order.getCertificates()) {
+
             GiftCertificate certificateToAddToOrder = certificateDAO.findById(certificate.getId()).get();
             orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(), certificate.getId(),
                     certificateToAddToOrder, certificateToAddToOrder.getPrice());

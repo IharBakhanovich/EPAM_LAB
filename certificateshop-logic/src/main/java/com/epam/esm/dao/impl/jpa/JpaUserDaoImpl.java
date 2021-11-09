@@ -50,6 +50,7 @@ public class JpaUserDaoImpl implements UserDao {
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId" +
             " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
+    private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
     private static final List<String> USER_HEADERS = Arrays.asList("userId", "userNickName", "userOrderId",
             "orderCreateDate", "orderName", "orderCertificate");
     private UserRepository userRepository;
@@ -73,7 +74,10 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public void save(User user) {
-
+        entityManager
+                .createNativeQuery(INSERT_ENTITY_SQL)
+                .setParameter(1, user.getNickName())
+                .executeUpdate();
     }
 
     /**
@@ -86,8 +90,7 @@ public class JpaUserDaoImpl implements UserDao {
         Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_SQL);
         List<Object[]> resultList = query.getResultList();
         List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
-        List<User> users = getEntities(result);
-        return users;
+        return getEntities(result);
     }
 
     /**
@@ -143,7 +146,7 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public void delete(long id) {
-        userRepository.deleteById(id);
+
     }
 
     /**
@@ -154,7 +157,14 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findByName(String nickName) {
-        return Optional.empty();
+        Query query = entityManager.createNativeQuery(FIND_ENTITY_BY_NAME_SQL).setParameter(1, nickName);
+        List<Object[]> resultList = query.getResultList();
+        List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
+        List<User> users = getEntities(result);
+        if (users.isEmpty()) {
+            return Optional.empty();
+        }
+        return users.stream().findFirst();
     }
 
     /**
@@ -166,12 +176,15 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
+//        return entityManager.createNativeQuery(FIND_ALL_ENTITIES_PAGINATION_SQL, User.class)
+//                .setParameter(1, pageNumber * amountEntitiesOnThePage)
+//                .setParameter(2, amountEntitiesOnThePage).getResultList();
+
         Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_PAGINATION_SQL)
                 .setParameter(1, pageNumber * amountEntitiesOnThePage)
                 .setParameter(2, amountEntitiesOnThePage);
         List<Object[]> resultList = query.getResultList();
         List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
-        List<User> users = getEntities(result);
-        return users;
+        return getEntities(result);
     }
 }

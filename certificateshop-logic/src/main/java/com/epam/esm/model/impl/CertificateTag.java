@@ -20,6 +20,12 @@ import java.io.Serializable;
         schema = "certificates",
         name = "tag"
 )
+//@NamedNativeQueries(value = {
+//        @NamedNativeQuery(name = "tag.findAllPagination",
+//                query = "select tag.id as tagId, tag.name as tagName from tag" +
+//                        " WHERE tag.id IN (select * from (select id from tag order by id LIMIT ?, ?) as query1)",
+//        resultClass = CertificateTag.class)
+//})
 public class CertificateTag implements DatabaseEntity, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
