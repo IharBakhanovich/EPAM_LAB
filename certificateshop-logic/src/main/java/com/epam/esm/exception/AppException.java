@@ -1,7 +1,7 @@
 package com.epam.esm.exception;
 
 /**
- * The main class of the application {@link RuntimeException}.
+ * The Main class of the application {@link RuntimeException}.
  */
 public class AppException extends RuntimeException {
     String errorCode;

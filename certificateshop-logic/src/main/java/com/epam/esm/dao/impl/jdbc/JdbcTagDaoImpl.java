@@ -60,7 +60,7 @@ public class JdbcTagDaoImpl implements TagDao {
     @Qualifier("certificateTagMapper")
     private RowMapper<CertificateTag> certificateTagRowMapper;
 
-    private JdbcTagDaoImpl() {
+    public JdbcTagDaoImpl() {
     }
 
     /**

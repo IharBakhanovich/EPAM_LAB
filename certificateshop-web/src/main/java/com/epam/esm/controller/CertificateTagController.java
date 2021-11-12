@@ -62,9 +62,9 @@ public class CertificateTagController {
         CollectionModel<EntityModel<CertificateTag>> collectionModel = CollectionModel.of(modelFromOrders);
         collectionModel.add(linkTo(methodOn(CertificateTagController.class).tags(paramsNext)).
                         withRel(translator.toLocale("FETCHES_NEXT_PAGE_TAG_HATEOAS_LINK_MESSAGE")),
-                linkTo(methodOn(GiftCertificateController.class).certificates(paramsPrev)).
+                linkTo(methodOn(CertificateTagController.class).tags(paramsPrev)).
                         withRel(translator.toLocale("FETCHES_PREVIOUS_PAGE_TAG_HATEOAS_LINK_MESSAGE")),
-                linkTo(methodOn(GiftCertificateController.class).certificates(parameters)).withSelfRel());
+                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withSelfRel());
         return collectionModel;
     }
 

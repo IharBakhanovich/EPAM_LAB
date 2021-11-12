@@ -14,14 +14,13 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The class that implements the CertificateDAO interface.
  */
 @Profile("dev")
-@Repository
+@Repository("certificateDAO")
 @Component("certificateDAO")
 public class JdbcCertificateDaoImpl implements CertificateDao {
 
@@ -123,11 +122,65 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
      * @return {@link List<GiftCertificate>}.
      */
     @Override
-    public List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
+    public List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage,
+                                                   Map<String, String> parameters) {
+        String CREATED_FIND_ALL_ENTITIES = ColumnNames.createQuery(parameters);
         List<GiftCertificate> giftCertificates =
-        jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, giftCertificateExtractor,
-                pageNumber * amountEntitiesOnThePage, amountEntitiesOnThePage);
+                jdbcTemplate.query(CREATED_FIND_ALL_ENTITIES, giftCertificateExtractor,
+                        pageNumber * amountEntitiesOnThePage, amountEntitiesOnThePage);
         return giftCertificates;
+    }
+
+    private String createQuery(Map<String, String> parameters) {
+        String part1 = "select c.id as certificateId, c.name as certificateName, c.description as certificateDescription," +
+                " c.duration as certificateDuration, c.create_date as certificateCreateDate," +
+                " c.price as certificatePrice, c.last_update_date as certificateLastUpdateDate, t.id as tagId," +
+                " t.name as tagName" +
+                " from gift_certificate as c" +
+                " LEFT OUTER JOIN (has_tag as h LEFT OUTER JOIN tag as t ON t.id = h.tagId) ON c.id = h.certificateId" +
+                " WHERE c.id IN (select * from (select id from (select cq.id, tq.name, COUNT(tq.name) as amount" +
+                " from (gift_certificate as cq" +
+                " LEFT OUTER JOIN (has_tag as hq LEFT OUTER JOIN tag as tq ON tq.id = hq.tagId) ON cq.id = hq.certificateId)";
+        String part2_1 = " where cq.name like ";
+        String part2_2 = "'%%'";
+        String part3_1 = " and cq.description like ";
+        String part3_2 = "'%%'";
+        String part4_1 = " and tq.name in (%s)";
+        String part4_2 = "";
+        String part4_3 = "group by cq.id having amount = ";
+        String part4_4 = "";
+        String part5 = " order by cq.id) as query2";
+        String part6 = " LIMIT ?, ?) as query1);";
+
+        Set<Map.Entry<String, String>> set = parameters.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            if (entry.getKey().equals("part_cert_name")) {
+                part2_2 = "'%" + parameters.get("part_cert_name") + "%'";
+            }
+            if (entry.getKey().equals("part_descr_name")) {
+                part3_2 = "'%" + parameters.get("part_descr_name") + "%'";
+            }
+            if (entry.getKey().equals("tag_name")) {
+                List<String> values = Arrays.asList(parameters.get("tag_name").split(","));
+                part4_4 = String.valueOf(values.size());
+                for (String value : values) {
+                    if (part4_2.equals("")) {
+                        part4_2 = part4_2.concat("'").concat(value).concat("'");
+                    } else {
+                        part4_2 = part4_2.concat(", ").concat("'").concat(value).concat("'");
+                    }
+                }
+            }
+        }
+        String findAllQuery = part1.concat(part2_1);
+        if (part4_2.equals("")) {
+            findAllQuery = findAllQuery + part2_2 + part3_1 + part3_2 + part5 + part6;
+        } else {
+            String part4 = String.format(part4_1, part4_2);
+            findAllQuery = findAllQuery + part2_2 + part3_1 + part3_2
+                    + String.format(part4_1, part4_2) + part4_3 + part4_4 + part5 + part6;
+        }
+        return findAllQuery;
     }
 
     /**

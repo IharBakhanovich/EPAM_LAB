@@ -16,10 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The class that implements the {@link TagDao} interface.
@@ -28,14 +25,6 @@ import java.util.Optional;
 @Repository
 @Transactional
 public class JpaCertificateDaoImpl implements CertificateDao {
-    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
-            = "select c.id as certificateId, c.name as certificateName," +
-            " c.description as certificateDescription, c.duration as certificateDuration," +
-            " c.create_date as certificateCreateDate, c.price as certificatePrice," +
-            " c.last_update_date as certificateLastUpdateDate, t.id as tagId, t.name as tagName" +
-            " from gift_certificate as c LEFT OUTER JOIN (has_tag as h LEFT OUTER JOIN tag as t ON t.id = h.tagId)" +
-            " ON c.id = h.certificateId WHERE c.id IN (select * from (select id from gift_certificate order by id" +
-            " LIMIT ?, ?) as query1)";
     private static final List<String> CERTIFICATE_HEADERS = Arrays.asList(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_ID,
             ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_NAME, ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_DESCRIPTION,
             ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_DURATION, ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_CREATE_DATE,
@@ -64,7 +53,6 @@ public class JpaCertificateDaoImpl implements CertificateDao {
     @Override
     public void save(GiftCertificate entity) {
         entityManager.persist(entity);
-
 //        giftCertificateRepository.save(entity);
     }
 
@@ -76,8 +64,9 @@ public class JpaCertificateDaoImpl implements CertificateDao {
      * @return List of the {@link GiftCertificate} objects.
      */
     @Override
-    public List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
-        Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_SQL_PAGINATION)
+    public List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage, Map<String, String> parameters) {
+        String CREATED_FIND_ALL_ENTITIES = ColumnNames.createQuery(parameters);
+        Query query = entityManager.createNativeQuery(CREATED_FIND_ALL_ENTITIES)
                 .setParameter(1, pageNumber * amountEntitiesOnThePage)
                 .setParameter(2, amountEntitiesOnThePage);
         List<Object[]> resultList = query.getResultList();

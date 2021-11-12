@@ -140,7 +140,6 @@ public class OrderServiceImpl implements OrderService {
     @SneakyThrows
     public String generateUniqueOrderName(User user) {
         Gson gson = new Gson();
-        ObjectMapper mapper = new ObjectMapper();
         return "Order_of_" + user.getNickName() + "_" + gson.toJson(LocalDateTime.now());
     }
 

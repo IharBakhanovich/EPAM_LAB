@@ -1,12 +1,25 @@
 package com.epam.esm.dao;
 
+import com.epam.esm.configuration.LogicConfig;
 import com.epam.esm.configuration.TestConfig;
+import com.epam.esm.dao.impl.jdbc.JdbcCertificateDaoImpl;
+import com.epam.esm.dao.impl.jdbc.JdbcOrderDaoImpl;
+import com.epam.esm.dao.impl.jdbc.JdbcTagDaoImpl;
+import com.epam.esm.dao.impl.jdbc.JdbcUserDaoImpl;
+import com.epam.esm.dao.impl.jpa.JpaCertificateDaoImpl;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -20,19 +33,21 @@ import java.util.Optional;
 /**
  * Contains {@link CertificateDao} tests.
  */
+@SpringBootTest
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestConfig.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = {TestConfig.class}, loader = AnnotationConfigContextLoader.class)
 public class CertificateDaoTest {
 
     @Autowired
-    private CertificateDao certificateDAO;
+    @Qualifier("certificateDAO")
+    private CertificateDao certificateDao;
 
     /**
      * The test of the findAll() method.
      */
     @Test
     public void testFindAll() {
-        List<GiftCertificate> allGiftCertificates = certificateDAO.findAll();
+        List<GiftCertificate> allGiftCertificates = certificateDao.findAll();
         Assertions.assertEquals(8, allGiftCertificates.size());
     }
 
@@ -41,7 +56,7 @@ public class CertificateDaoTest {
      */
     @Test
     public void testFindById() {
-        GiftCertificate giftCertificate = certificateDAO.findById(1).get();
+        GiftCertificate giftCertificate = certificateDao.findById(1).get();
         Assertions.assertEquals(1, giftCertificate.getId());
     }
 
@@ -50,7 +65,7 @@ public class CertificateDaoTest {
      */
     @Test
     public void testFindByName() {
-        GiftCertificate giftCertificate = certificateDAO.findByName("cert8").get();
+        GiftCertificate giftCertificate = certificateDao.findByName("cert8").get();
         Assertions.assertEquals("cert8", giftCertificate.getName());
     }
 
@@ -63,8 +78,8 @@ public class CertificateDaoTest {
         GiftCertificate giftCertificate = new GiftCertificate(
                 0, "cert9", "certNineDescription", BigDecimal.ONE, 30, LocalDateTime.now(), LocalDateTime.now(), tags
         );
-        certificateDAO.save(giftCertificate);
-        GiftCertificate giftCertificate1 = certificateDAO.findByName("cert9").get();
+        certificateDao.save(giftCertificate);
+        GiftCertificate giftCertificate1 = certificateDao.findByName("cert9").get();
         Assertions.assertEquals("cert9", giftCertificate1.getName());
     }
 
@@ -73,8 +88,8 @@ public class CertificateDaoTest {
      */
     @Test
     public void testDelete() {
-        certificateDAO.delete(1);
-        Optional<GiftCertificate> giftCertificate = certificateDAO.findById(1);
+        certificateDao.delete(1);
+        Optional<GiftCertificate> giftCertificate = certificateDao.findById(1);
         Assertions.assertFalse(giftCertificate.isPresent());
     }
 
@@ -83,11 +98,11 @@ public class CertificateDaoTest {
      */
     @Test
     public void testUpdate() {
-        GiftCertificate giftCertificate = certificateDAO.findAll().get(0);
+        GiftCertificate giftCertificate = certificateDao.findAll().get(0);
         String description = giftCertificate.getDescription();
         giftCertificate.setDescription("NewDescription");
-        certificateDAO.update(giftCertificate);
-        GiftCertificate giftCertificateAfterUpdate = certificateDAO.findById(giftCertificate.getId()).get();
+        certificateDao.update(giftCertificate);
+        GiftCertificate giftCertificateAfterUpdate = certificateDao.findById(giftCertificate.getId()).get();
         Assertions.assertEquals(giftCertificateAfterUpdate.getDescription(), "NewDescription");
     }
 
@@ -96,11 +111,11 @@ public class CertificateDaoTest {
      */
     @Test
     public void testSaveIdsInHas_tagTable() {
-        GiftCertificate giftCertificate = certificateDAO.findById(8).get();
+        GiftCertificate giftCertificate = certificateDao.findById(8).get();
         Assertions.assertEquals(0, giftCertificate.getTags().size());
-        certificateDAO.saveIdsInHas_tagTable(8, 1);
-        certificateDAO.saveIdsInHas_tagTable(8, 2);
-        GiftCertificate giftCertificateAfterSaveInHas_tagTable = certificateDAO.findById(8).get();
+        certificateDao.saveIdsInHas_tagTable(8, 1);
+        certificateDao.saveIdsInHas_tagTable(8, 2);
+        GiftCertificate giftCertificateAfterSaveInHas_tagTable = certificateDao.findById(8).get();
         Assertions.assertEquals(2, giftCertificateAfterSaveInHas_tagTable.getTags().size());
     }
 
@@ -109,10 +124,10 @@ public class CertificateDaoTest {
      */
     @Test
     public void testDeleteIdsInHas_TagTable() {
-        GiftCertificate giftCertificate = certificateDAO.findById(7).get();
+        GiftCertificate giftCertificate = certificateDao.findById(7).get();
         Assertions.assertEquals(1, giftCertificate.getTags().size());
-        certificateDAO.deleteIdsInHas_TagTable(7L, 7L);
-        GiftCertificate giftCertificateAfterDelete = certificateDAO.findById(7).get();
+        certificateDao.deleteIdsInHas_TagTable(7L, 7L);
+        GiftCertificate giftCertificateAfterDelete = certificateDao.findById(7).get();
         Assertions.assertEquals(0, giftCertificateAfterDelete.getTags().size());
     }
 }

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The main interface of the DAO of the application,
- * that defines the main operation on the DB (CRUD).
+ * The Main interface of the DAO of the application,
+ * that defines the Main operation on the DB (CRUD).
  */
 public interface Dao<T extends DatabaseEntity> {
 

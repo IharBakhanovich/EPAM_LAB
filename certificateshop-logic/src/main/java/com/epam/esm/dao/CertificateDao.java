@@ -5,6 +5,7 @@ import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface CertificateDao extends Dao<GiftCertificate> {
@@ -24,7 +25,7 @@ public interface CertificateDao extends Dao<GiftCertificate> {
      * @param amountEntitiesOnThePage  is the amountEntitiesOnThePage query parameter.
      * @return List of the {@link GiftCertificate} objects.
      */
-    List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage);
+    List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage, Map<String, String> parameters);
 
     /**
      * Returns all the {@link GiftCertificate}s in the database.

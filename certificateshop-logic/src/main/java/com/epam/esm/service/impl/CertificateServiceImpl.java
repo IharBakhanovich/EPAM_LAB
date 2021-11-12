@@ -101,7 +101,7 @@ public class CertificateServiceImpl implements CertificateService {
                 }
             }
         } else {
-            if (idCertificateFromDB!=0) {
+            if (idCertificateFromDB != 0) {
                 certificateTags1 = certificateDAO.findById(idCertificateFromDB).get().getTags();
             }
         }
@@ -145,7 +145,7 @@ public class CertificateServiceImpl implements CertificateService {
                 = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
         checkLimitAndOffset(errorMessage, pageNumber, amountEntitiesOnThePage);
         List<GiftCertificate> giftCertificates = new ArrayList<>();
-        giftCertificates = certificateDAO.findAllPagination(pageNumber, amountEntitiesOnThePage);
+        giftCertificates = certificateDAO.findAllPagination(pageNumber, amountEntitiesOnThePage, parameters);
         for (Map.Entry<String, String> parameter : parameters.entrySet()) {
             giftCertificates = Arrays.stream(HandlerType.values())
                     .filter(handlerType -> handlerType.getParameterName().equals(parameter.getKey()))
