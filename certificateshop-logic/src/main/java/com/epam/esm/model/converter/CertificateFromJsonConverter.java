@@ -13,8 +13,8 @@ public class CertificateFromJsonConverter implements AttributeConverter<GiftCert
     }
 
     @Override
-    public GiftCertificate convertToEntityAttribute(String s) {
+    public GiftCertificate convertToEntityAttribute(String jsonToConvertToGiftCertificateEntity) {
         Gson gson = new Gson();
-        return gson.fromJson(s, GiftCertificate.class);
+        return gson.fromJson(jsonToConvertToGiftCertificateEntity, GiftCertificate.class);
     }
 }

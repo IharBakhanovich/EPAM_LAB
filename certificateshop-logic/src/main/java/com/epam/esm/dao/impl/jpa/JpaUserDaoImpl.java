@@ -109,15 +109,12 @@ public class JpaUserDaoImpl implements UserDao {
     }
 
     private List<User> getEntities(List<List<Object>> result) {
-        ResultSet resultSet;
-        List<User> users = new ArrayList<>();
         try {
-            resultSet = listToSetConverter.getResultSet(USER_HEADERS, result);
-            users = userExtractor.extractData(resultSet);
+            ResultSet resultSet = listToSetConverter.getResultSet(USER_HEADERS, result);
+            return userExtractor.extractData(resultSet);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
-        return users;
     }
 
     private List<List<Object>> convertListOfArrayToListOfLists(List<Object[]> resultList) {

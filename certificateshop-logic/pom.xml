@@ -13,8 +13,10 @@
         <artifactId>certificateshop</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
     <properties>
-            <jackson-annotations.version>2.12.4</jackson-annotations.version>
+        <jackson-annotations.version>2.12.4</jackson-annotations.version>
+        <spring-hateoas.version>0.23.0.RELEASE</spring-hateoas.version>
     </properties>
 
     <dependencies>
@@ -29,11 +31,12 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
 
-<!--        &lt;!&ndash; ConnectionPool &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.zaxxer</groupId>-->
-<!--            <artifactId>HikariCP</artifactId>-->
-<!--        </dependency>-->
+        <!--        &lt;!&ndash; ConnectionPool &ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.zaxxer</groupId>-->
+        <!--            <artifactId>HikariCP</artifactId>-->
+        <!--        </dependency>-->
+
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-bom</artifactId>
@@ -82,12 +85,12 @@
             <artifactId>gson</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework</groupId>-->
-<!--            <artifactId>spring-test</artifactId>-->
-<!--            <version>5.3.10</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework</groupId>-->
+        <!--            <artifactId>spring-test</artifactId>-->
+        <!--            <version>5.3.10</version>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -97,7 +100,7 @@
         <dependency>
             <groupId>org.springframework.hateoas</groupId>
             <artifactId>spring-hateoas</artifactId>
-            <version>0.23.0.RELEASE</version>
+            <version>${spring-hateoas.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.hateoas</groupId>

@@ -6,7 +6,7 @@ import java.util.*;
  * Stores names of the database tables columns, which are used by {@link GiftCertificateExtractor}
  * {@link CertificateTagMapper} and {@link GiftCertificateMapper} to fetch data from a ResultSet.
  */
-public class ColumnNames {
+public final class ColumnNames {
     public static final String TABLE_GIFT_CERTIFICATE_COLUMN_ID = "certificateId";
     public static final String TABLE_GIFT_CERTIFICATE_COLUMN_NAME = "certificateName";
     public static final String TABLE_GIFT_CERTIFICATE_COLUMN_DESCRIPTION = "certificateDescription";
@@ -54,7 +54,8 @@ public class ColumnNames {
      * @param amountOfEntitesOnThePage
      * @return
      */
-    public static <T> Map<String, String> createNextParameters(List<T> entities, int pageNumber, int amountOfEntitesOnThePage) {
+    public static <T> Map<String, String> createNextParameters(
+            List<T> entities, int pageNumber, int amountOfEntitesOnThePage) {
         int nextPageNumber = 0;
         Map<String, String> paramsNext = new HashMap<>();
         if (amountOfEntitesOnThePage == entities.size()) {
@@ -67,7 +68,8 @@ public class ColumnNames {
         return paramsNext;
     }
 
-    public static <T> Map<String, String> createPrevParameters(List<T> certificates, int pageNumber, int amountOfEntitiesOnThePage) {
+    public static <T> Map<String, String> createPrevParameters(
+            List<T> certificates, int pageNumber, int amountOfEntitiesOnThePage) {
         Map<String, String> paramsPrev = new HashMap<>();
         int prevPageNumber = 0;
         if (pageNumber > 0) {
@@ -88,8 +90,8 @@ public class ColumnNames {
      * @param amountOfEntitesOnThePage
      * @return
      */
-    public static <T> Map<String, List<String>> createNextParametersForFindAll(List<T> entities,
-                                                                               int pageNumber, int amountOfEntitesOnThePage) {
+    public static <T> Map<String, List<String>> createNextParametersForFindAll(
+            List<T> entities, int pageNumber, int amountOfEntitesOnThePage) {
         int nextPageNumber = 0;
         Map<String, List<String>> paramsNext = new HashMap<>();
         if (amountOfEntitesOnThePage == entities.size()) {
@@ -107,8 +109,8 @@ public class ColumnNames {
         return paramsNext;
     }
 
-    public static <T> Map<String, List<String>> createPrevParametersForFindAll(List<T> certificates,
-                                                                               int pageNumber, int amountOfEntitiesOnThePage) {
+    public static <T> Map<String, List<String>> createPrevParametersForFindAll(
+            List<T> certificates, int pageNumber, int amountOfEntitiesOnThePage) {
         Map<String, List<String>> paramsPrev = new HashMap<>();
         int prevPageNumber = 0;
         if (pageNumber > 0) {
@@ -128,8 +130,7 @@ public class ColumnNames {
 
     private static void setLimit(int amountOfEntitiesOnThePage, Map<String, String> paramsNext) {
         if (amountOfEntitiesOnThePage != 0) {
-            paramsNext.put(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME,
-                    String.valueOf(amountOfEntitiesOnThePage));
+            paramsNext.put(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME, String.valueOf(amountOfEntitiesOnThePage));
         } else {
             paramsNext.put(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME, DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
         }
@@ -159,8 +160,7 @@ public class ColumnNames {
      * @param parameters the map to validate.
      * @return parameters of the query.
      */
-    public static Map<String, String> validateParameters(Map<String, String> parameters,
-                                                         String defaultAmountEntitiesOnThePage) {
+    public static Map<String, String> validateParameters(Map<String, String> parameters, String defaultAmountEntitiesOnThePage) {
         if (parameters.size() == 0 || !parameters.containsKey(ColumnNames.PAGE_NUMBER_PARAM_NAME)
                 || !parameters.containsKey(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME)) {
             parameters.put(ColumnNames.PAGE_NUMBER_PARAM_NAME, "0");

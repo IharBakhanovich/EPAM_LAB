@@ -16,7 +16,6 @@ import com.epam.esm.validator.CertificateValidator;
 import com.epam.esm.validator.OrderValidator;
 import com.epam.esm.validator.TagValidator;
 import com.epam.esm.validator.UserValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderValidator orderValidator;
 
     @Autowired
-
     public OrderServiceImpl(UserDao userDao, CertificateDao certificateDAO, TagDao tagDAO, OrderDao orderDao,
                             CertificateValidator certificateValidator, TagValidator tagValidator,
                             UserValidator userValidator, Translator translator, OrderValidator orderValidator) {
@@ -205,13 +203,15 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(Order order) {
         List<String> errorMessage = new ArrayList<>();
         checkUserIdAndCertificatesId(order, errorMessage);
-        if (order.getCertificates() == null || order.getCertificates().isEmpty()) {
-            errorMessage.add(translator.toLocale("CERTIFICATES_IN_ORDER_SHOULD_BE_NOT_EMPTY"));
-            throw new MethodArgumentNotValidException(ERROR_CODE_DUPLICATE + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
-        }
+        checkIfOrderCertificateNotEmpty(order, errorMessage);
         if (order.getCertificates().size() == 1) {
             orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId());
         }
+        String newOrderName = saveOrderToCertificateRelationInReletionTable(order);
+        return orderDao.findByName(newOrderName).get();
+    }
+
+    private String saveOrderToCertificateRelationInReletionTable(Order order) {
         User userFromDatabase = userDao.findById(order.getUser().getId()).get();
         String newOrderName = createNewOrder(order, userFromDatabase);
         Order orderFromDB = orderDao.findByName(newOrderName).get();
@@ -221,7 +221,14 @@ public class OrderServiceImpl implements OrderService {
             orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(), certificate.getId(),
                     certificateToAddToOrder, certificateToAddToOrder.getPrice());
         }
-        return orderDao.findByName(newOrderName).get();
+        return newOrderName;
+    }
+
+    private void checkIfOrderCertificateNotEmpty(Order order, List<String> errorMessage) {
+        if (order.getCertificates() == null || order.getCertificates().isEmpty()) {
+            errorMessage.add(translator.toLocale("CERTIFICATES_IN_ORDER_SHOULD_BE_NOT_EMPTY"));
+            throw new MethodArgumentNotValidException(ERROR_CODE_DUPLICATE + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+        }
     }
 
     private String createNewOrder(Order order, User user) {
@@ -232,28 +239,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void checkUserIdAndCertificatesId(Order order, List<String> errorMessage) {
-        if (order.getUser().getId() == 0) {
-            errorMessage.add(translator.toLocale("USER_ID_SHOULD_NOT_BE_EMPTY"));
-        } else if (order.getUser().getId() < 0) {
-            errorMessage.add(
-                    String.format(translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"), "userId"));
-        } else if (!userDao.findById(order.getUser().getId()).isPresent()) {
-            errorMessage.add(String.format(translator.toLocale(
-                    "THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), order.getUser().getId()));
+        checkUserIdAndIfUserWithSuchIdExistInDatabase(order, errorMessage);
+        checkOrdersCertificatesIdAndIfCertificatesWithSuchIdExist(order, errorMessage);
+        if (!errorMessage.isEmpty()) {
+            throw new EntityNotFoundException(ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
         }
+    }
+
+    private void checkOrdersCertificatesIdAndIfCertificatesWithSuchIdExist(Order order, List<String> errorMessage) {
         for (GiftCertificate certificate : order.getCertificates()) {
             if (certificate.getId() == 0) {
                 errorMessage.add(translator.toLocale("CERTIFICATE_ID_SHOULD_NOT_BE_EMPTY"));
-            } else if (certificate.getId() < 0) {
-                errorMessage.add(String.format(
-                        translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"), "certificateId"));
-            } else if (!certificateDAO.findById(certificate.getId()).isPresent()) {
+            }
+            if (certificate.getId() < 0) {
+                errorMessage.add(String.format(translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"),
+                        ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_ID));
+            }
+            if (!certificateDAO.findById(certificate.getId()).isPresent()) {
                 errorMessage.add(String.format(translator.toLocale(
                         "THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), certificate.getId()));
             }
         }
-        if (!errorMessage.isEmpty()) {
-            throw new EntityNotFoundException(ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+    }
+
+    private void checkUserIdAndIfUserWithSuchIdExistInDatabase(Order order, List<String> errorMessage) {
+        if (order.getUser().getId() == 0) {
+            errorMessage.add(translator.toLocale("USER_ID_SHOULD_NOT_BE_EMPTY"));
+        } else if (order.getUser().getId() < 0) {
+            errorMessage.add(String.format(translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"),
+                    ColumnNames.TABLE_USER_COLUMN_ID));
+        } else if (!userDao.findById(order.getUser().getId()).isPresent()) {
+            errorMessage.add(String.format(translator.toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"),
+                    order.getUser().getId()));
         }
     }
 }

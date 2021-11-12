@@ -49,12 +49,7 @@ public class OrderExtractor implements ResultSetExtractor<List<Order>> {
             final long currentId = resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID);
             if (currentId != 0) {
                 if (orders.stream().anyMatch(order -> order.getId() == currentId)) {
-                    if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-                        orders.stream()
-                                .filter(order -> order.getId() == currentId)
-                                .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
-                    }
+                    fetchNewCertificateFromTheLineAndAddItToOrder(resultSet, orders, currentId);
                 } else {
                     List<GiftCertificate> allCertificatesThisOrder = new ArrayList<GiftCertificate>();
                     User userThisOrder = userRowMapper.mapRow(resultSet, resultSet.getRow());
@@ -66,15 +61,19 @@ public class OrderExtractor implements ResultSetExtractor<List<Order>> {
                             allCertificatesThisOrder
                     );
                     orders.add(newOrder);
-                    if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-                        orders.stream()
-                                .filter(order -> order.getId() == currentId)
-                                .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
-                    }
+                    fetchNewCertificateFromTheLineAndAddItToOrder(resultSet, orders, currentId);
                 }
             }
         }
         return orders;
+    }
+
+    private void fetchNewCertificateFromTheLineAndAddItToOrder(ResultSet resultSet, List<Order> orders, long currentId) throws SQLException {
+        if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+            GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+            orders.stream()
+                    .filter(order -> order.getId() == currentId)
+                    .findAny().ifPresent(order -> order.getCertificates().add(giftCertificate));
+        }
     }
 }

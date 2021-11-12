@@ -234,9 +234,8 @@ public class UserServiceImpl implements UserService {
             errorMessage.add(String.format(translator
                     .toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), userId));
             throw new EntityNotFoundException(ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_USER_NOT_VALID, errorMessage);
-        } else {
-            return user.get();
         }
+        return user.get();
     }
 
     /**

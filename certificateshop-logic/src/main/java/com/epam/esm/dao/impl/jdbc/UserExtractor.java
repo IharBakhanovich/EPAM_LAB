@@ -45,28 +45,36 @@ public class UserExtractor implements ResultSetExtractor<List<User>> {
                 if (user.getOrders().stream().anyMatch(order -> order.getId() == currentOrderId)) {
                     addGiftCertificateToCorrespondingOrderOfUserOrders(resultSet, users, currentId, currentOrderId);
                 } else {
-                    Order newOrder = createNewOrderFromResultSetLine(resultSet);
-                    if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
-                        GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
-                        newOrder.getCertificates().add(giftCertificate);
-                        users.stream().filter(user2 -> user2.getId() == currentId)
-                                .findAny().ifPresent(user2 -> user2.getOrders().add(newOrder));
-                    }
+                    createNewOrderFillItWithCertificateAndAddOrderToUser(resultSet, users, currentId);
                 }
             } else {
-                List<Order> allOrdersThisUser = new ArrayList<Order>();
-                User user = createNewUserFromResultSetLine(resultSet, allOrdersThisUser);
-                if (resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID) != 0) {
-                    Order newOrder = createNewOrderFromResultSetLine(resultSet);
-                    user.getOrders().add(newOrder);
-                    users.add(user);
-                    addGiftCertificateToNewOrderOfUsersOrders(resultSet, users, currentId, currentOrderId, newOrder);
-                } else {
-                    users.add(user);
-                }
+                createUserFillItWithOrderAndCertificateAndAddToUsers(resultSet, users, currentId, currentOrderId);
             }
         }
         return users;
+    }
+
+    private void createUserFillItWithOrderAndCertificateAndAddToUsers(ResultSet resultSet, List<User> users, long currentId, long currentOrderId) throws SQLException {
+        List<Order> allOrdersThisUser = new ArrayList<Order>();
+        User user = createNewUserFromResultSetLine(resultSet, allOrdersThisUser);
+        if (resultSet.getLong(ColumnNames.TABLE_USERORDER_COLUMN_ID) != 0) {
+            Order newOrder = createNewOrderFromResultSetLine(resultSet);
+            user.getOrders().add(newOrder);
+            users.add(user);
+            addGiftCertificateToNewOrderOfUsersOrders(resultSet, users, currentId, currentOrderId, newOrder);
+        } else {
+            users.add(user);
+        }
+    }
+
+    private void createNewOrderFillItWithCertificateAndAddOrderToUser(ResultSet resultSet, List<User> users, long currentId) throws SQLException {
+        Order newOrder = createNewOrderFromResultSetLine(resultSet);
+        if (resultSet.getString(ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON) != null) {
+            GiftCertificate giftCertificate = certificateInJsonMapper.mapRow(resultSet, resultSet.getRow());
+            newOrder.getCertificates().add(giftCertificate);
+            users.stream().filter(user2 -> user2.getId() == currentId)
+                    .findAny().ifPresent(user2 -> user2.getOrders().add(newOrder));
+        }
     }
 
     private User createNewUserFromResultSetLine(ResultSet resultSet, List<Order> allOrdersThisUser) throws SQLException {

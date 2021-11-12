@@ -1,12 +1,6 @@
 package com.epam.esm.dao;
 
-import com.epam.esm.configuration.LogicConfig;
 import com.epam.esm.configuration.TestConfig;
-import com.epam.esm.dao.impl.jdbc.JdbcCertificateDaoImpl;
-import com.epam.esm.dao.impl.jdbc.JdbcOrderDaoImpl;
-import com.epam.esm.dao.impl.jdbc.JdbcTagDaoImpl;
-import com.epam.esm.dao.impl.jdbc.JdbcUserDaoImpl;
-import com.epam.esm.dao.impl.jpa.JpaCertificateDaoImpl;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import org.junit.jupiter.api.Assertions;
@@ -15,11 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -113,8 +102,8 @@ public class CertificateDaoTest {
     public void testSaveIdsInHas_tagTable() {
         GiftCertificate giftCertificate = certificateDao.findById(8).get();
         Assertions.assertEquals(0, giftCertificate.getTags().size());
-        certificateDao.saveIdsInHas_tagTable(8, 1);
-        certificateDao.saveIdsInHas_tagTable(8, 2);
+        certificateDao.saveIdsInHasTagTable(8, 1);
+        certificateDao.saveIdsInHasTagTable(8, 2);
         GiftCertificate giftCertificateAfterSaveInHas_tagTable = certificateDao.findById(8).get();
         Assertions.assertEquals(2, giftCertificateAfterSaveInHas_tagTable.getTags().size());
     }
@@ -126,7 +115,7 @@ public class CertificateDaoTest {
     public void testDeleteIdsInHas_TagTable() {
         GiftCertificate giftCertificate = certificateDao.findById(7).get();
         Assertions.assertEquals(1, giftCertificate.getTags().size());
-        certificateDao.deleteIdsInHas_TagTable(7L, 7L);
+        certificateDao.deleteIdsFromHasTagTable(7L, 7L);
         GiftCertificate giftCertificateAfterDelete = certificateDao.findById(7).get();
         Assertions.assertEquals(0, giftCertificateAfterDelete.getTags().size());
     }

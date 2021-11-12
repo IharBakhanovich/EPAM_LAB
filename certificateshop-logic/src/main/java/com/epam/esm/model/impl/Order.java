@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Target;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -59,7 +58,7 @@ public class Order implements DatabaseEntity, Serializable {
     @Column(name = "id", updatable = false)
     private long id;
     @JoinColumn(name = "userid")
-    @ManyToOne (fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private User user;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     @Column(name = "create_date", updatable = false)

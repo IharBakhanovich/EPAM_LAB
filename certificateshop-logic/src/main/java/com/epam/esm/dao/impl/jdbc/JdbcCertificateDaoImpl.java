@@ -265,7 +265,7 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
      * @param tagId         is the id of the {@link com.epam.esm.model.impl.CertificateTag} to save
      */
     @Override
-    public void saveIdsInHas_tagTable(long certificateId, long tagId) {
+    public void saveIdsInHasTagTable(long certificateId, long tagId) {
         jdbcTemplate.update(INSERT_VALUES_IN_HAS_TAG_TABLE_SQL, certificateId, tagId);
     }
 
@@ -276,7 +276,7 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
      * @param tagId         is the id of the {@link CertificateTag} to remove.     *
      */
     @Override
-    public void deleteIdsInHas_TagTable(long certificateId, Long tagId) {
+    public void deleteIdsFromHasTagTable(long certificateId, Long tagId) {
         jdbcTemplate.update(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL, certificateId, tagId);
     }
 

@@ -21,8 +21,8 @@ public interface CertificateDao extends Dao<GiftCertificate> {
     /**
      * Finds all {@link GiftCertificate} entity in the database.
      *
-     * @param pageNumber is the pageNumber query parameter.
-     * @param amountEntitiesOnThePage  is the amountEntitiesOnThePage query parameter.
+     * @param pageNumber              is the pageNumber query parameter.
+     * @param amountEntitiesOnThePage is the amountEntitiesOnThePage query parameter.
      * @return List of the {@link GiftCertificate} objects.
      */
     List<GiftCertificate> findAllPagination(int pageNumber, int amountEntitiesOnThePage, Map<String, String> parameters);
@@ -74,7 +74,7 @@ public interface CertificateDao extends Dao<GiftCertificate> {
      * @param certificateId is the id of the {@link GiftCertificate} to save.
      * @param tagId         is the id of the {@link com.epam.esm.model.impl.CertificateTag} to save
      */
-    void saveIdsInHas_tagTable(long certificateId, long tagId);
+    void saveIdsInHasTagTable(long certificateId, long tagId);
 
     /**
      * Removes the tuple certificateId and tagId from the 'has_tag' table of the database.
@@ -82,7 +82,7 @@ public interface CertificateDao extends Dao<GiftCertificate> {
      * @param certificateId is the id of the {@link GiftCertificate} to remove.
      * @param tagId         is the id of the {@link CertificateTag} to remove.     *
      */
-    void deleteIdsInHas_TagTable(long certificateId, Long tagId);
+    void deleteIdsFromHasTagTable(long certificateId, Long tagId);
 
     /**
      * Finds certificate without {@link CertificateTag} by its name.

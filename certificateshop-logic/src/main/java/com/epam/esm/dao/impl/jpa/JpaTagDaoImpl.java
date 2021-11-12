@@ -56,7 +56,6 @@ public class JpaTagDaoImpl implements TagDao {
     @Override
     public void save(CertificateTag entity) throws DuplicateException {
         entityManager.persist(entity);
-//        certificateTagRepository.save(entity);
     }
 
     /**
@@ -74,7 +73,7 @@ public class JpaTagDaoImpl implements TagDao {
         List<Object[]> tags = query.getResultList();
         List<CertificateTag> certificateTags = new ArrayList<>();
         for (Object[] object : tags) {
-            long id = Long.valueOf((int)object[0]);
+            long id = Long.valueOf((int) object[0]);
             String name = (String) object[1];
             certificateTags.add(new CertificateTag(id, name));
         }

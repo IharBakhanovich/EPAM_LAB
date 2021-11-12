@@ -127,7 +127,12 @@ public class JpaOrderDaoImpl implements OrderDao {
      */
     @Override
     public void update(Order order) {
-
+        Order orderFromDB = entityManager.find(Order.class, order.getId());
+        entityManager.createQuery("UPDATE userorder o set o.name = :name, o.user = :user where o.id = :id")
+                .setParameter("name", order.getName())
+                .setParameter("user", order.getUser())
+                .setParameter("id", order.getId()).executeUpdate();
+        entityManager.refresh(orderFromDB);
     }
 
     /**
@@ -137,7 +142,10 @@ public class JpaOrderDaoImpl implements OrderDao {
      */
     @Override
     public void delete(long id) {
-
+        entityManager
+                .createQuery("delete from userorder o where o.id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
     }
 
     /**

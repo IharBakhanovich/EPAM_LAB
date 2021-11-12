@@ -1,8 +1,6 @@
 package com.epam.esm.configuration;
 
 import com.epam.esm.converter.OrderToOrderDtoConverter;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.*;
@@ -27,12 +25,8 @@ import java.util.Locale;
  * The LogicConfig class.
  */
 @Configuration
-@EnableJpaRepositories(basePackages = {
-        "com.epam.esm.repository"
-})
-@EntityScan(basePackages = {
-        "com.epam.esm.model"
-})
+@EnableJpaRepositories("com.epam.esm.repository")
+@EntityScan("com.epam.esm.model")
 @ComponentScan("com.epam.esm")
 @PropertySource("classpath:jdbc.properties")
 public class LogicConfig extends AcceptHeaderLocaleResolver
