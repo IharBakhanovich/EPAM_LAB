@@ -3,6 +3,7 @@ package com.epam.esm.service;
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.TagDao;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.model.impl.CertificateTag;
@@ -59,8 +60,8 @@ public class CertificateServiceTest {
         List<GiftCertificate> certificates = new ArrayList<>();
         certificates.add(giftCertificate);
 
-        given(certificateDAO.findAll()).willReturn(certificates);
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, String> parameters = ColumnNames.DEFAULT_PARAMS;
+        given(certificateDAO.findAllPagination(0, 5, parameters)).willReturn(certificates);
         List<GiftCertificate> expectedCertificates = certificateService.findAllCertificates(parameters);
         Assertions.assertEquals(certificates, expectedCertificates);
     }

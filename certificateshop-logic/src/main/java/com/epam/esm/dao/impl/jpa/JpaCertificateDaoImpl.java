@@ -1,7 +1,7 @@
 package com.epam.esm.dao.impl.jpa;
 
 import com.epam.esm.dao.CertificateDao;
-import com.epam.esm.dao.ListToSetConverter;
+import com.epam.esm.dao.ListToResultSetConverter;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dao.impl.jdbc.GiftCertificateExtractor;
@@ -37,15 +37,15 @@ public class JpaCertificateDaoImpl implements CertificateDao {
 
     private GiftCertificateRepository giftCertificateRepository;
     private EntityManager entityManager;
-    private ListToSetConverter listToSetConverter;
+    private ListToResultSetConverter listToResultSetConverter;
     private GiftCertificateExtractor giftCertificateExtractor;
 
     @Autowired
     public JpaCertificateDaoImpl(GiftCertificateRepository giftCertificateRepository, EntityManager entityManager,
-                                 ListToSetConverter listToSetConverter, GiftCertificateExtractor giftCertificateExtractor) {
+                                 ListToResultSetConverter listToResultSetConverter, GiftCertificateExtractor giftCertificateExtractor) {
         this.giftCertificateRepository = giftCertificateRepository;
         this.entityManager = entityManager;
-        this.listToSetConverter = listToSetConverter;
+        this.listToResultSetConverter = listToResultSetConverter;
         this.giftCertificateExtractor = giftCertificateExtractor;
     }
 
@@ -81,7 +81,7 @@ public class JpaCertificateDaoImpl implements CertificateDao {
         ResultSet resultSet;
         List<GiftCertificate> certificates = new ArrayList<>();
         try {
-            resultSet = listToSetConverter.getResultSet(CERTIFICATE_HEADERS, result);
+            resultSet = listToResultSetConverter.convertToResultSet(CERTIFICATE_HEADERS, result);
             certificates = giftCertificateExtractor.extractData(resultSet);
         } catch (Exception exception) {
             throw new RuntimeException(exception);

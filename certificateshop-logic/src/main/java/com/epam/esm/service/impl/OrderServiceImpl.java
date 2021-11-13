@@ -138,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
     @SneakyThrows
     public String generateUniqueOrderName(User user) {
         Gson gson = new Gson();
-        return "Order_of_" + user.getNickName() + "_" + gson.toJson(LocalDateTime.now());
+        return "Order_of_" + user.getNickName() + "_" + LocalDateTime.now();
     }
 
     /**
@@ -265,10 +265,12 @@ public class OrderServiceImpl implements OrderService {
     private void checkUserIdAndIfUserWithSuchIdExistInDatabase(Order order, List<String> errorMessage) {
         if (order.getUser().getId() == 0) {
             errorMessage.add(translator.toLocale("USER_ID_SHOULD_NOT_BE_EMPTY"));
-        } else if (order.getUser().getId() < 0) {
+        }
+        if (order.getUser().getId() < 0) {
             errorMessage.add(String.format(translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"),
                     ColumnNames.TABLE_USER_COLUMN_ID));
-        } else if (!userDao.findById(order.getUser().getId()).isPresent()) {
+        }
+        if (!userDao.findById(order.getUser().getId()).isPresent()) {
             errorMessage.add(String.format(translator.toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"),
                     order.getUser().getId()));
         }

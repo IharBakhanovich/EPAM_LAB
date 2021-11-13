@@ -112,7 +112,7 @@ public class OrderController {
 
         List<EntityModel<Order>> moderFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).
-                                withRel(translator.toLocale("FETCHES_AND_REMOVES_ORDER_HATEOAS_LINK_MESSAGE"))))
+                                withRel(translator.toLocale("FETCHES_AN_ORDER_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         return CollectionModel.of(moderFromOrders,
                 linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<String, String>()))

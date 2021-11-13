@@ -1,6 +1,6 @@
 package com.epam.esm.dao.impl.jpa;
 
-import com.epam.esm.dao.ListToSetConverter;
+import com.epam.esm.dao.ListToResultSetConverter;
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.dao.impl.jdbc.UserExtractor;
 import com.epam.esm.model.impl.User;
@@ -55,15 +55,15 @@ public class JpaUserDaoImpl implements UserDao {
             "orderCreateDate", "orderName", "orderCertificate");
     private UserRepository userRepository;
     private EntityManager entityManager;
-    private ListToSetConverter listToSetConverter;
+    private ListToResultSetConverter listToResultSetConverter;
     private UserExtractor userExtractor;
 
     @Autowired
     public JpaUserDaoImpl(UserRepository userRepository, EntityManager entityManager,
-                          ListToSetConverter resultListToResultSetConverter, UserExtractor userExtractor) {
+                          ListToResultSetConverter resultListToResultSetConverter, UserExtractor userExtractor) {
         this.userRepository = userRepository;
         this.entityManager = entityManager;
-        this.listToSetConverter = resultListToResultSetConverter;
+        this.listToResultSetConverter = resultListToResultSetConverter;
         this.userExtractor = userExtractor;
     }
 
@@ -110,7 +110,7 @@ public class JpaUserDaoImpl implements UserDao {
 
     private List<User> getEntities(List<List<Object>> result) {
         try {
-            ResultSet resultSet = listToSetConverter.getResultSet(USER_HEADERS, result);
+            ResultSet resultSet = listToResultSetConverter.convertToResultSet(USER_HEADERS, result);
             return userExtractor.extractData(resultSet);
         } catch (Exception exception) {
             throw new RuntimeException(exception);

@@ -1,6 +1,6 @@
 package com.epam.esm.dao.impl.jpa;
 
-import com.epam.esm.dao.ListToSetConverter;
+import com.epam.esm.dao.ListToResultSetConverter;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dao.impl.jdbc.OrderExtractor;
@@ -65,15 +65,15 @@ public class JpaOrderDaoImpl implements OrderDao {
             ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON);
     private OrderRepository orderRepository;
     private EntityManager entityManager;
-    private ListToSetConverter listToSetConverter;
+    private ListToResultSetConverter listToResultSetConverter;
     private OrderExtractor orderExtractor;
 
     @Autowired
     public JpaOrderDaoImpl(OrderRepository orderRepository, EntityManager entityManager,
-                           ListToSetConverter listToSetConverter, OrderExtractor orderExtractor) {
+                           ListToResultSetConverter listToResultSetConverter, OrderExtractor orderExtractor) {
         this.orderRepository = orderRepository;
         this.entityManager = entityManager;
-        this.listToSetConverter = listToSetConverter;
+        this.listToResultSetConverter = listToResultSetConverter;
         this.orderExtractor = orderExtractor;
     }
 
@@ -179,7 +179,7 @@ public class JpaOrderDaoImpl implements OrderDao {
         ResultSet resultSet;
         List<Order> orders = new ArrayList<>();
         try {
-            resultSet = listToSetConverter.getResultSet(ORDER_HEADERS, result);
+            resultSet = listToResultSetConverter.convertToResultSet(ORDER_HEADERS, result);
             orders = orderExtractor.extractData(resultSet);
         } catch (Exception exception) {
             throw new RuntimeException(exception);

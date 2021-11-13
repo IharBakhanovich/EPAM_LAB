@@ -1,20 +1,19 @@
 package com.epam.esm.dao.impl.jpa;
 
-import com.epam.esm.dao.ListToSetConverter;
+import com.epam.esm.dao.ListToResultSetConverter;
 import com.mockrunner.mock.jdbc.MockResultSet;
 import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author edw
  */
 @Component
-public class ResultListToResultSetConverter implements ListToSetConverter {
+public class ResultListToResultSetConverter implements ListToResultSetConverter {
 
-    public ResultSet getResultSet(List<String> headers, List<List<Object>> data) throws Exception {
+    public ResultSet convertToResultSet(List<String> headers, List<List<Object>> data) throws Exception {
         // validation
         if (headers == null || data == null) {
             throw new Exception("null parameters");

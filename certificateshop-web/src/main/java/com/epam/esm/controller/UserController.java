@@ -138,7 +138,7 @@ public class UserController {
         Map<String, String> paramsPrev = ColumnNames.createPrevParameters(users, pageNumber, amountEntitiesOnThePage);
         List<EntityModel<User>> modelFromOrders = users.stream().map(user -> EntityModel.of(user,
                         linkTo(methodOn(UserController.class).getUserById(user.getId()))
-                                .withRel(translator.toLocale("FETCHES_AND_REMOVES_USER_HATEOAS_LINK_MESSAGE"))))
+                                .withRel(translator.toLocale("FETCHES_THE_USER_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());
         return CollectionModel.of(modelFromOrders,
                 linkTo(methodOn(GiftCertificateController.class).certificates(ColumnNames.DEFAULT_PARAMS))
