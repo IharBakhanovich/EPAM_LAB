@@ -63,64 +63,64 @@ public class OrderServiceImpl implements OrderService {
         this.orderValidator = orderValidator;
     }
 
-    /**
-     * Orders a {@link GiftCertificate} to the {@link User}
-     *
-     * @param userId        is the id of the {@link User} that order a {@param giftCertificate}.
-     * @param certificateId is the id of the {@link GiftCertificate} that is ordered by {@param user}.
-     * @return {@link Order}.
-     */
-    @Override
-    @SneakyThrows
-    public Order orderCertificate(long userId, long certificateId) {
-        // checks inputs
-        List<String> errorMessage = new ArrayList<>();
-        String errorMessageAfterCheckUserId = checkId(userId, "userId");
-        String errorMessageAfterCheckCertificateId = checkId(certificateId, "certificateId");
-        checkForErrors(errorMessage, errorMessageAfterCheckUserId, errorMessageAfterCheckCertificateId);
-        Optional<User> user = userDao.findById(userId);
-        Optional<GiftCertificate> giftCertificate = certificateDAO.findById(certificateId);
-        String errorMessageAfterCheckUser = checkUserExistence(user, userId);
-        String errorMessageAfterCheckCertificate = checkCertificateExistence(giftCertificate, certificateId);
-        checkForErrors(errorMessage, errorMessageAfterCheckCertificate, errorMessageAfterCheckUser);
-        // creates new order
-        List<GiftCertificate> certificates = new ArrayList<>();
-        certificates.add(giftCertificate.get());
-        String name = generateUniqueOrderName(user.get());
-        Order newOrder = new Order(0, user.get(), LocalDateTime.now(), name, certificates);
-        orderDao.save(newOrder);
-        Order orderFromDB = orderDao.findByName(name).get();
-        orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(), giftCertificate.get().getId(),
-                giftCertificate.get(), giftCertificate.get().getPrice());
-        return orderDao.findByName(name).get();
-    }
+//    /**
+//     * Orders a {@link GiftCertificate} to the {@link User}
+//     *
+//     * @param userId        is the id of the {@link User} that order a {@param giftCertificate}.
+//     * @param certificateId is the id of the {@link GiftCertificate} that is ordered by {@param user}.
+//     * @return {@link Order}.
+//     */
+//    @Override
+//    @SneakyThrows
+//    public Order orderCertificate(long userId, long certificateId) {
+//        // checks inputs
+//        List<String> errorMessage = new ArrayList<>();
+//        String errorMessageAfterCheckUserId = checkId(userId, "userId");
+//        String errorMessageAfterCheckCertificateId = checkId(certificateId, "certificateId");
+//        checkForErrors(errorMessage, errorMessageAfterCheckUserId, errorMessageAfterCheckCertificateId);
+//        Optional<User> user = userDao.findById(userId);
+//        Optional<GiftCertificate> giftCertificate = certificateDAO.findById(certificateId);
+//        String errorMessageAfterCheckUser = checkUserExistence(user, userId);
+//        String errorMessageAfterCheckCertificate = checkCertificateExistence(giftCertificate, certificateId);
+//        checkForErrors(errorMessage, errorMessageAfterCheckCertificate, errorMessageAfterCheckUser);
+//        // creates new order
+//        List<GiftCertificate> certificates = new ArrayList<>();
+//        certificates.add(giftCertificate.get());
+//        String name = generateUniqueOrderName(user.get());
+//        Order newOrder = new Order(0, user.get(), LocalDateTime.now(), name, certificates);
+//        orderDao.save(newOrder);
+//        Order orderFromDB = orderDao.findByName(name).get();
+//        orderDao.saveIdsInUserorder_certificateTable(orderFromDB.getId(), giftCertificate.get().getId(),
+//                giftCertificate.get(), giftCertificate.get().getPrice());
+//        return orderDao.findByName(name).get();
+//    }
 
-    private void checkForErrors(List<String> errorMessage, String errorMessageAfterCheckUserId, String errorMessageAfterCheckCertificateId) {
-        if (errorMessageAfterCheckUserId != null) {
-            errorMessage.add(errorMessageAfterCheckUserId);
-        }
-        if (errorMessageAfterCheckCertificateId != null) {
-            errorMessage.add(errorMessageAfterCheckCertificateId);
-        }
-        if (!errorMessage.isEmpty()) {
-            throw new MethodArgumentNotValidException(
-                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
-        }
-    }
-
-    private String checkCertificateExistence(Optional<GiftCertificate> giftCertificate, long id) {
-        if (!giftCertificate.isPresent()) {
-            return String.format(translator.toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), id);
-        }
-        return null;
-    }
-
-    private String checkUserExistence(Optional<User> user, long id) {
-        if (!user.isPresent()) {
-            return String.format(translator.toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), id);
-        }
-        return null;
-    }
+//    private void checkForErrors(List<String> errorMessage, String errorMessageAfterCheckUserId, String errorMessageAfterCheckCertificateId) {
+//        if (errorMessageAfterCheckUserId != null) {
+//            errorMessage.add(errorMessageAfterCheckUserId);
+//        }
+//        if (errorMessageAfterCheckCertificateId != null) {
+//            errorMessage.add(errorMessageAfterCheckCertificateId);
+//        }
+//        if (!errorMessage.isEmpty()) {
+//            throw new MethodArgumentNotValidException(
+//                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+//        }
+//    }
+//
+//    private String checkCertificateExistence(Optional<GiftCertificate> giftCertificate, long id) {
+//        if (!giftCertificate.isPresent()) {
+//            return String.format(translator.toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), id);
+//        }
+//        return null;
+//    }
+//
+//    private String checkUserExistence(Optional<User> user, long id) {
+//        if (!user.isPresent()) {
+//            return String.format(translator.toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), id);
+//        }
+//        return null;
+//    }
 
     private String checkId(long id, String label) {
         if (id < 0) {
@@ -204,9 +204,9 @@ public class OrderServiceImpl implements OrderService {
         List<String> errorMessage = new ArrayList<>();
         checkUserIdAndCertificatesId(order, errorMessage);
         checkIfOrderCertificateNotEmpty(order, errorMessage);
-        if (order.getCertificates().size() == 1) {
-            orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId());
-        }
+//        if (order.getCertificates().size() == 1) {
+//            orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId());
+//        }
         String newOrderName = saveOrderToCertificateRelationInReletionTable(order);
         return orderDao.findByName(newOrderName).get();
     }

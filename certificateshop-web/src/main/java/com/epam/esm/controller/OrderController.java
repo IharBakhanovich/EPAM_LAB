@@ -42,31 +42,31 @@ public class OrderController {
         this.translator = translator;
     }
 
-    /**
-     * The method that realises the 'POST /users/{userId}/{certificateId}' query
-     * and orders {@link GiftCertificate} by {@link User}.
-     *
-     * @param userId is the ID of the {@link User} to find.
-     * @return {@link List <Order>} that belong ti the {@link User} with the id equals userId.
-     */
-    @PostMapping(value = "/{userId}/{certificateId}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public EntityModel<Order> orderCertificate(@PathVariable("userId") long userId,
-                                               @PathVariable("certificateId") long certificateId) {
-        Order order = orderService.orderCertificate(userId, certificateId);
-        EntityModel<Order> orderEntityModel = EntityModel.of(order, linkTo(methodOn(OrderController.class)
-                .fetchOrderById(order.getId()))
-                .withRel(translator.toLocale("FETCHES_ORDER_HATEOAS_LINK_MESSAGE")));
-        orderEntityModel.add(linkTo(methodOn(UserController.class).userOrders(userId))
-                .withRel(translator.toLocale("ALL_ORDERS_OF_THIS_USER_HATEOAS_LINK_MESSAGE")));
-        orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
-                .withRel(translator.toLocale("CREATES_NEW_ORDER_HATEOAS_LINK_MESSAGE")));
-        orderEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
-                .withRel(translator.toLocale("FETCHES_ALL_CERTIFICATES_HATEOAS_LINK_MESSAGE")));
-
-        return orderEntityModel.add(linkTo(methodOn(OrderController.class).orderCertificate(userId, certificateId))
-                .withSelfRel());
-    }
+//    /**
+//     * The method that realises the 'POST /users/{userId}/{certificateId}' query
+//     * and orders {@link GiftCertificate} by {@link User}.
+//     *
+//     * @param userId is the ID of the {@link User} to find.
+//     * @return {@link List <Order>} that belong ti the {@link User} with the id equals userId.
+//     */
+//    @PostMapping(value = "/{userId}/{certificateId}")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public EntityModel<Order> orderCertificate(@PathVariable("userId") long userId,
+//                                               @PathVariable("certificateId") long certificateId) {
+//        Order order = orderService.orderCertificate(userId, certificateId);
+//        EntityModel<Order> orderEntityModel = EntityModel.of(order, linkTo(methodOn(OrderController.class)
+//                .fetchOrderById(order.getId()))
+//                .withRel(translator.toLocale("FETCHES_ORDER_HATEOAS_LINK_MESSAGE")));
+//        orderEntityModel.add(linkTo(methodOn(UserController.class).userOrders(userId))
+//                .withRel(translator.toLocale("ALL_ORDERS_OF_THIS_USER_HATEOAS_LINK_MESSAGE")));
+//        orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
+//                .withRel(translator.toLocale("CREATES_NEW_ORDER_HATEOAS_LINK_MESSAGE")));
+//        orderEntityModel.add(linkTo(methodOn(GiftCertificateController.class).certificates(new HashMap<>()))
+//                .withRel(translator.toLocale("FETCHES_ALL_CERTIFICATES_HATEOAS_LINK_MESSAGE")));
+//
+//        return orderEntityModel.add(linkTo(methodOn(OrderController.class).orderCertificate(userId, certificateId))
+//                .withSelfRel());
+//    }
 
     /**
      * The method that realises the 'GET /orders/{orderId}' query.
@@ -79,11 +79,11 @@ public class OrderController {
     public EntityModel<Order> fetchOrderById(@PathVariable("orderId") long orderId) {
 
         Order order = orderService.findOrderById(orderId);
-        EntityModel<Order> orderEntityModel = EntityModel.of(order, linkTo(methodOn(OrderController.class)
-                .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
-                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
-        orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
+        EntityModel<Order> orderEntityModel = EntityModel.of(order, linkTo(methodOn(OrderController.class).addNewOrder(new Order()))
                 .withRel(translator.toLocale("CREATES_NEW_ORDER_HATEOAS_LINK_MESSAGE")));
+//        orderEntityModel.add(linkTo(methodOn(OrderController.class)
+//                .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
+//                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
                 .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")));
 
@@ -138,11 +138,11 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public EntityModel<Order> addNewOrder(@RequestBody Order order) {
         Order orderAfterAdd = orderService.createOrder(order);
-        EntityModel<Order> orderEntityModel = EntityModel.of(orderAfterAdd, linkTo(methodOn(OrderController.class)
-                .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
-                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
-        orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchOrderById(orderAfterAdd.getId()))
+        EntityModel<Order> orderEntityModel = EntityModel.of(orderAfterAdd, linkTo(methodOn(OrderController.class).fetchOrderById(orderAfterAdd.getId()))
                 .withRel(translator.toLocale("FETCHES_ORDER_HATEOAS_LINK_MESSAGE")));
+//        orderEntityModel.add(linkTo(methodOn(OrderController.class)
+//                .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
+//                .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         orderEntityModel.add(linkTo(methodOn(OrderController.class).fetchAllOrders(ColumnNames.DEFAULT_PARAMS))
                 .withRel(translator.toLocale("FETCHES_ALL_ORDERS_HATEOAS_LINK_MESSAGE")));
         return orderEntityModel.add(linkTo(methodOn(OrderController.class).addNewOrder(new Order()))

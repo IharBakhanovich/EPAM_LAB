@@ -60,11 +60,10 @@ public class UserController {
                             linkTo(methodOn(UserController.class).getUserById(userId))
                                     .withRel(translator.toLocale("FETCHES_USER_HATEOAS_LINK_MESSAGE")),
                             linkTo(methodOn(UserController.class).addNewUser(new User()))
-                                    .withRel(translator.toLocale("CREATES_NEW_USER_HATEOAS_LINK_MESSAGE")),
-                            linkTo(methodOn(OrderController.class)
-                                    .orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
-                                    .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE"))))
+                                    .withRel(translator.toLocale("CREATES_NEW_USER_HATEOAS_LINK_MESSAGE"))))
                     .collect(Collectors.toList());
+//            linkTo(methodOn(OrderController.class).orderCertificate(order.getUser().getId(), order.getCertificates().get(0).getId()))
+//                    .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE"))
         }
         return CollectionModel.of(modelFromOrders, linkTo(methodOn(UserController.class)
                         .userOrders(userId)).withSelfRel(),
@@ -107,9 +106,9 @@ public class UserController {
             userEntityModel.add(linkTo(methodOn(UserController.class)
                     .costAndTimeOfUsersOrder(user.getId(), user.getOrders().get(0).getId()))
                     .withRel(translator.toLocale("COST_AND_TIME_OF_THE_USER_ORDER_HATEOAS_LINK_MESSAGE")));
-            userEntityModel.add(linkTo(methodOn(OrderController.class)
-                    .orderCertificate(userId, user.getOrders().get(0).getCertificates().get(0).getId()))
-                    .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
+//            userEntityModel.add(linkTo(methodOn(OrderController.class)
+//                    .orderCertificate(userId, user.getOrders().get(0).getCertificates().get(0).getId()))
+//                    .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
         }
         userEntityModel.add(linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<>()))
                 .withRel(translator.toLocale("FETCHES_ALL_USERS_HATEOAS_LINK_MESSAGE")));

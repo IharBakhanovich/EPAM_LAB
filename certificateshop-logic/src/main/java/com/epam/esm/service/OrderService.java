@@ -19,14 +19,14 @@ public interface OrderService {
      */
     Order createOrder(Order order);
 
-    /**
-     * Orders a {@link GiftCertificate} to the {@link User}
-     *
-     * @param userId        is the id of the {@link User} that order a {@param giftCertificate}.
-     * @param certificateId is the id of the {@link GiftCertificate} that is ordered by {@param user}.
-     * @return {@link Order}.
-     */
-    Order orderCertificate(long userId, long certificateId);
+//    /**
+//     * Orders a {@link GiftCertificate} to the {@link User}
+//     *
+//     * @param userId        is the id of the {@link User} that order a {@param giftCertificate}.
+//     * @param certificateId is the id of the {@link GiftCertificate} that is ordered by {@param user}.
+//     * @return {@link Order}.
+//     */
+//    Order orderCertificate(long userId, long certificateId);
 
     /**
      * Generates name of an Order.
