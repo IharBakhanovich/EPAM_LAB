@@ -83,12 +83,4 @@ public interface CertificateDao extends Dao<GiftCertificate> {
      * @param tagId         is the id of the {@link CertificateTag} to remove.     *
      */
     void deleteIdsFromHasTagTable(long certificateId, Long tagId);
-
-    /**
-     * Finds certificate without {@link CertificateTag} by its name.
-     *
-     * @param name the name to find by.
-     * @return {@link Optional<GiftCertificate>}.
-     */
-    Optional<GiftCertificate> findCertificateWithoutTagsByName(String name);
 }

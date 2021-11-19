@@ -275,4 +275,36 @@ public class OrderServiceImpl implements OrderService {
                     order.getUser().getId()));
         }
     }
+
+    /**
+     * Returns all {@link Order}s of the {@link User} with the ID equals {@param userId}.
+     *
+     * @param userId is the id of the {@link User} which {@link Order}s to return.
+     * @return {@link List<Order>}, that represents all the orders of the {@link User} with the id equals {@param userId}.
+     */
+    @Override
+    public List<Order> findOrdersByUserId(long userId) {
+        validateId(userId);
+        checkIfUserWithSuchIdExist(userId);
+        return orderDao.findAllByUserId(userId);
+    }
+
+    private void validateId(long userId) {
+        String errorMessage = checkId(userId, "userId");
+        if( errorMessage != null) {
+            List<String> errorMessages = new ArrayList<>();
+            errorMessages.add(translator
+                    .toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"));
+            throw new EntityNotFoundException(ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_ORDER_NOT_VALID, errorMessages);
+        }
+    }
+
+    private void checkIfUserWithSuchIdExist(long userId) {
+        if (!userDao.findById(userId).isPresent()) {
+            List<String> errorMessage = new ArrayList<>();
+            errorMessage.add(String.format(translator
+                    .toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), userId));
+            throw new EntityNotFoundException(ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_ORDER_NOT_VALID, errorMessage);
+        }
+    }
 }

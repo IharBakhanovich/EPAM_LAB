@@ -67,11 +67,6 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
             = "insert into has_tag (certificateId, tagId) values (?, ?)";
     private static final String DELETE_VALUES_IN_HAS_TAG_TABLE_SQL
             = "delete from has_tag where certificateId = ? and tagId = ?";
-    private static final String FIND_CERTIFICATE_WITHOUT_TAGS_BY_NAME
-            = "select c.id as certificateId, c.name as certificateName," +
-            " c.description as certificateDescription, c.duration as certificateDuration," +
-            " c.create_date as certificateCreateDate, c.price as certificatePrice," +
-            " c.last_update_date as certificateLastUpdateDate from gift_certificate as c where c.name = ?";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -79,10 +74,6 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
     @Autowired
     @Qualifier("certificateExtractor")
     private ResultSetExtractor<List<GiftCertificate>> giftCertificateExtractor;
-
-    @Autowired
-    @Qualifier("certificateMapper")
-    private RowMapper<GiftCertificate> certificateMapper;
 
     public JdbcCertificateDaoImpl() {
     }
@@ -106,15 +97,6 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
     }
 
     /**
-     * The setter of the {@link RowMapper<GiftCertificate>}.
-     *
-     * @param certificateMapper is the {@link RowMapper<GiftCertificate>} to set.
-     */
-    public void setCertificateMapper(RowMapper<GiftCertificate> certificateMapper) {
-        this.certificateMapper = certificateMapper;
-    }
-
-    /**
      * Returns all the {@link GiftCertificate}s in the database.
      *
      * @param pageNumber              is the pageNumber query parameter.
@@ -131,58 +113,6 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
         return giftCertificates;
     }
 
-    private String createQuery(Map<String, String> parameters) {
-        String part1 = "select c.id as certificateId, c.name as certificateName, c.description as certificateDescription," +
-                " c.duration as certificateDuration, c.create_date as certificateCreateDate," +
-                " c.price as certificatePrice, c.last_update_date as certificateLastUpdateDate, t.id as tagId," +
-                " t.name as tagName" +
-                " from gift_certificate as c" +
-                " LEFT OUTER JOIN (has_tag as h LEFT OUTER JOIN tag as t ON t.id = h.tagId) ON c.id = h.certificateId" +
-                " WHERE c.id IN (select * from (select id from (select cq.id, tq.name, COUNT(tq.name) as amount" +
-                " from (gift_certificate as cq" +
-                " LEFT OUTER JOIN (has_tag as hq LEFT OUTER JOIN tag as tq ON tq.id = hq.tagId) ON cq.id = hq.certificateId)";
-        String part2_1 = " where cq.name like ";
-        String part2_2 = "'%%'";
-        String part3_1 = " and cq.description like ";
-        String part3_2 = "'%%'";
-        String part4_1 = " and tq.name in (%s)";
-        String part4_2 = "";
-        String part4_3 = "group by cq.id having amount = ";
-        String part4_4 = "";
-        String part5 = " order by cq.id) as query2";
-        String part6 = " LIMIT ?, ?) as query1);";
-
-        Set<Map.Entry<String, String>> set = parameters.entrySet();
-        for (Map.Entry<String, String> entry : set) {
-            if (entry.getKey().equals("part_cert_name")) {
-                part2_2 = "'%" + parameters.get("part_cert_name") + "%'";
-            }
-            if (entry.getKey().equals("part_descr_name")) {
-                part3_2 = "'%" + parameters.get("part_descr_name") + "%'";
-            }
-            if (entry.getKey().equals("tag_name")) {
-                List<String> values = Arrays.asList(parameters.get("tag_name").split(","));
-                part4_4 = String.valueOf(values.size());
-                for (String value : values) {
-                    if (part4_2.equals("")) {
-                        part4_2 = part4_2.concat("'").concat(value).concat("'");
-                    } else {
-                        part4_2 = part4_2.concat(", ").concat("'").concat(value).concat("'");
-                    }
-                }
-            }
-        }
-        String findAllQuery = part1.concat(part2_1);
-        if (part4_2.equals("")) {
-            findAllQuery = findAllQuery + part2_2 + part3_1 + part3_2 + part5 + part6;
-        } else {
-            String part4 = String.format(part4_1, part4_2);
-            findAllQuery = findAllQuery + part2_2 + part3_1 + part3_2
-                    + String.format(part4_1, part4_2) + part4_3 + part4_4 + part5 + part6;
-        }
-        return findAllQuery;
-    }
-
     /**
      * Returns all the {@link GiftCertificate}s in the database.
      *
@@ -190,7 +120,7 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
      */
     @Override
     public List<GiftCertificate> findAll() {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL_PAGINATION, giftCertificateExtractor);
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, giftCertificateExtractor);
     }
 
     /**
@@ -278,16 +208,5 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
     @Override
     public void deleteIdsFromHasTagTable(long certificateId, Long tagId) {
         jdbcTemplate.update(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL, certificateId, tagId);
-    }
-
-    /**
-     * Finds certificate without {@link CertificateTag} by its name.
-     *
-     * @param name the name to find by.
-     * @return {@link Optional<GiftCertificate>}.
-     */
-    @Override
-    public Optional<GiftCertificate> findCertificateWithoutTagsByName(String name) {
-        return jdbcTemplate.query(FIND_CERTIFICATE_WITHOUT_TAGS_BY_NAME, certificateMapper, name).stream().findFirst();
     }
 }

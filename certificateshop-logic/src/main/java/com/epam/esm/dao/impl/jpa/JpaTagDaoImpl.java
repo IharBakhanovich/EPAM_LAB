@@ -35,8 +35,8 @@ public class JpaTagDaoImpl implements TagDao {
                     " FROM userorder_certificate as uoc LEFT OUTER JOIN userorder as uo ON uoc.userOrderId = uo.id" +
                     " GROUP BY userId ORDER BY costAllCertificates DESC) as query1 LIMIT 1)" +
                     " GROUP BY ht.tagId ORDER BY amountOfTag DESC) as query3 LIMIT 1)";
-    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION = "select tag.id as tagId, tag.name as tagName from tag" +
-            " WHERE tag.id IN (select * from (select id from tag order by id LIMIT ?, ?) as query1)";
+    private static final String DELETE_VALUES_IN_HAS_TAG_TABLE_SQL
+            = "delete from has_tag where tagId = ?";
     private CertificateTagRepository certificateTagRepository;
     private EntityManager entityManager;
 
@@ -67,17 +67,10 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public List<CertificateTag> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
-        Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_SQL_PAGINATION);
-        query.setParameter(1, pageNumber * amountEntitiesOnThePage);
-        query.setParameter(2, amountEntitiesOnThePage);
-        List<Object[]> tags = query.getResultList();
-        List<CertificateTag> certificateTags = new ArrayList<>();
-        for (Object[] object : tags) {
-            long id = Long.valueOf((int) object[0]);
-            String name = (String) object[1];
-            certificateTags.add(new CertificateTag(id, name));
-        }
-        return certificateTags;
+        return entityManager.createQuery("select t from Tag t order by t.id", CertificateTag.class)
+                .setFirstResult(amountEntitiesOnThePage * pageNumber)
+                .setMaxResults(amountEntitiesOnThePage)
+                .getResultList();
     }
 
     /**
@@ -87,7 +80,8 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public List<CertificateTag> findAll() {
-        return certificateTagRepository.findAll();
+        return entityManager.createQuery("select t from Tag t order by t.id", CertificateTag.class)
+                .getResultList();
     }
 
     /**
@@ -160,7 +154,13 @@ public class JpaTagDaoImpl implements TagDao {
      */
     @Override
     public void deleteFromHasTagByTagId(long tagId) {
-
+        List resultList = entityManager.createNativeQuery(
+                        "select certificateId as certId, tagId as tId from has_tag where tagId = ?")
+                .setParameter(1, tagId).getResultList();
+        if(!resultList.isEmpty()) {
+            entityManager.createNativeQuery(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL)
+                    .setParameter(1, tagId).executeUpdate();
+        }
     }
 
     /**

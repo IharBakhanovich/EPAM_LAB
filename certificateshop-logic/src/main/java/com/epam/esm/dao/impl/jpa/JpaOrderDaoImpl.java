@@ -6,6 +6,7 @@ import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dao.impl.jdbc.OrderExtractor;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
+import com.epam.esm.model.impl.User;
 import com.epam.esm.repository.OrderRepository;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,12 @@ public class JpaOrderDaoImpl implements OrderDao {
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
+    private static final String FIND_ALL_ENTITIES_BY_USER_ID_SQL
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
+            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+            " ON u.id = uo.userId WHERE uo.userId = ?";
     private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
@@ -63,15 +70,13 @@ public class JpaOrderDaoImpl implements OrderDao {
             ColumnNames.TABLE_USER_COLUMN_NICKNAME, ColumnNames.TABLE_USERORDER_COLUMN_ID,
             ColumnNames.TABLE_USERORDER_COLUMN_CREATE_DATE, ColumnNames.TABLE_USERORDER_COLUMN_NAME,
             ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON);
-    private OrderRepository orderRepository;
     private EntityManager entityManager;
     private ListToResultSetConverter listToResultSetConverter;
     private OrderExtractor orderExtractor;
 
     @Autowired
-    public JpaOrderDaoImpl(OrderRepository orderRepository, EntityManager entityManager,
-                           ListToResultSetConverter listToResultSetConverter, OrderExtractor orderExtractor) {
-        this.orderRepository = orderRepository;
+    public JpaOrderDaoImpl(EntityManager entityManager, ListToResultSetConverter listToResultSetConverter,
+                           OrderExtractor orderExtractor) {
         this.entityManager = entityManager;
         this.listToResultSetConverter = listToResultSetConverter;
         this.orderExtractor = orderExtractor;
@@ -221,6 +226,21 @@ public class JpaOrderDaoImpl implements OrderDao {
         Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_SQL_PAGINATION)
                 .setParameter(1, pageNumber * amountEntitiesOnThePage)
                 .setParameter(2, amountEntitiesOnThePage);
+        List<Object[]> resultList = query.getResultList();
+        List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
+        return getEntities(result);
+    }
+
+    /**
+     * Finds all {@link Order} entity in the database which belongs to the {@link User} with the ID equals {@param userId}.
+     *
+     * @param userId is the ID of the {@link User} which orders is to fetch.
+     * @return List of the {@link Order} objects.
+     */
+    @Override
+    public List<Order> findAllByUserId(long userId) {
+        Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_BY_USER_ID_SQL)
+                .setParameter(1, userId);
         List<Object[]> resultList = query.getResultList();
         List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
         return getEntities(result);

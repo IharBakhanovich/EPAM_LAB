@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.transaction.Transactional;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -25,31 +24,6 @@ import java.util.Optional;
 @Repository
 @Transactional
 public class JpaUserDaoImpl implements UserDao {
-    private static final String FIND_ENTITY_BY_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId where u.id = ?";
-    private static final String FIND_ENTITY_BY_NAME_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId where u.nickName = ?";
-    private static final String FIND_ALL_ENTITIES_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId";
-    private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId" +
-            " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
     private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
     private static final List<String> USER_HEADERS = Arrays.asList("userId", "userNickName", "userOrderId",
             "orderCreateDate", "orderName", "orderCertificate");
@@ -74,10 +48,7 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public void save(User user) {
-        entityManager
-                .createNativeQuery(INSERT_ENTITY_SQL)
-                .setParameter(1, user.getNickName())
-                .executeUpdate();
+        entityManager.persist(user);
     }
 
     /**
@@ -87,10 +58,7 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAll() {
-        Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_SQL);
-        List<Object[]> resultList = query.getResultList();
-        List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
-        return getEntities(result);
+        return entityManager.createQuery("select u from user u order by u.id", User.class).getResultList();
     }
 
     /**
@@ -101,29 +69,9 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findById(long id) {
-        Query query = entityManager.createNativeQuery(FIND_ENTITY_BY_ID_SQL).setParameter(1, id);
-        List<Object[]> resultList = query.getResultList();
-        List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
-        List<User> users = getEntities(result);
-        return users.stream().findFirst();
-    }
-
-    private List<User> getEntities(List<List<Object>> result) {
-        try {
-            ResultSet resultSet = listToResultSetConverter.convertToResultSet(USER_HEADERS, result);
-            return userExtractor.extractData(resultSet);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
-    }
-
-    private List<List<Object>> convertListOfArrayToListOfLists(List<Object[]> resultList) {
-        List<List<Object>> result = new ArrayList();
-        for (Object[] objects : resultList) {
-            List<Object> listOfObjects = new ArrayList<>(Arrays.asList(objects));
-            result.add(listOfObjects);
-        }
-        return result;
+        return entityManager
+                .createQuery("select u from user u where u.id = :id", User.class)
+                .setParameter("id", id).getResultList().stream().findFirst();
     }
 
     /**
@@ -133,7 +81,10 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public void update(User user) {
-
+        User user1 = entityManager.find(User.class, user.getId());
+        entityManager.createQuery("UPDATE user u set u.nickName = :nickName where u.id = :id")
+                .setParameter("nickName", user.getNickName()).setParameter("id", user.getId()).executeUpdate();
+        entityManager.refresh(user1);
     }
 
     /**
@@ -143,7 +94,10 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public void delete(long id) {
-
+        entityManager
+                .createQuery("delete from user u where u.id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
     }
 
     /**
@@ -154,14 +108,9 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findByName(String nickName) {
-        Query query = entityManager.createNativeQuery(FIND_ENTITY_BY_NAME_SQL).setParameter(1, nickName);
-        List<Object[]> resultList = query.getResultList();
-        List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
-        List<User> users = getEntities(result);
-        if (users.isEmpty()) {
-            return Optional.empty();
-        }
-        return users.stream().findFirst();
+        return entityManager
+                .createQuery("select u from user u where u.nickName = :name", User.class)
+                .setParameter("name", nickName).getResultList().stream().findFirst();
     }
 
     /**
@@ -173,11 +122,9 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
-        Query query = entityManager.createNativeQuery(FIND_ALL_ENTITIES_PAGINATION_SQL)
-                .setParameter(1, pageNumber * amountEntitiesOnThePage)
-                .setParameter(2, amountEntitiesOnThePage);
-        List<Object[]> resultList = query.getResultList();
-        List<List<Object>> result = convertListOfArrayToListOfLists(resultList);
-        return getEntities(result);
+        return entityManager.createQuery("select u from user u order by u.id", User.class)
+                .setFirstResult(amountEntitiesOnThePage * pageNumber)
+                .setMaxResults(amountEntitiesOnThePage)
+                .getResultList();
     }
 }

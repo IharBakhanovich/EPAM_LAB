@@ -4,6 +4,7 @@ import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
+import com.epam.esm.model.impl.User;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -79,4 +80,12 @@ public interface OrderDao extends Dao<Order> {
      * @return List of the {@link Order} objects.
      */
     List<Order> findAllPagination(int pageNumber, int amountEntitiesOnThePage);
+
+    /**
+     * Finds all {@link Order} entity in the database which belongs to the {@link User} with the ID equals {@param userId}.
+     *
+     * @param userId is the ID of the {@link User} which orders is to fetch.
+     * @return List of the {@link Order} objects.
+     */
+    List<Order> findAllByUserId(long userId);
 }

@@ -106,7 +106,7 @@ public class OrderServiceTest {
         certificates1.add(giftCertificate2);
         List<GiftCertificate> certificates2 = new ArrayList<>();
         certificates2.add(giftCertificate2);
-        User user = new User(1, "user1", new ArrayList<>());
+        User user = new User(1, "user1");
         Order order1 = new Order(1, user, LocalDateTime.now(), "order1", certificates1);
         Order order2 = new Order(2, user, LocalDateTime.now(), "order2", certificates2);
         List<Order> orders = new ArrayList<>();
@@ -143,7 +143,7 @@ public class OrderServiceTest {
         certificates1.add(giftCertificate2);
         List<GiftCertificate> certificates2 = new ArrayList<>();
         certificates2.add(giftCertificate2);
-        User user = new User(1, "user1", new ArrayList<>());
+        User user = new User(1, "user1");
         Order order1 = new Order(1, user, LocalDateTime.now(), "order1", certificates1);
         Order order2 = new Order(1, user, LocalDateTime.now(), "order1", certificates2);
         given(certificateDao.findById(order1.getCertificates().get(1).getId())).willReturn(Optional.of(giftCertificate2));
@@ -177,7 +177,7 @@ public class OrderServiceTest {
         certificates1.add(giftCertificate2);
         List<GiftCertificate> certificates2 = new ArrayList<>();
         certificates2.add(giftCertificate2);
-        User user = new User(-1, "user1", new ArrayList<>());
+        User user = new User(-1, "user1");
         Order order1 = new Order(1, user, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(certificateDao.findById(order1.getCertificates().get(0).getId())).willReturn(Optional.of(giftCertificate1));
@@ -212,8 +212,8 @@ public class OrderServiceTest {
         certificates1.add(giftCertificate2);
         List<GiftCertificate> certificates2 = new ArrayList<>();
         certificates2.add(giftCertificate2);
-        User user1 = new User(1, "user1", new ArrayList<>());
-        User user2 = new User(2, "user2", new ArrayList<>());
+        User user1 = new User(1, "user1");
+        User user2 = new User(2, "user2");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(certificateDao.findById(order1.getCertificates().get(0).getId())).willReturn(Optional.of(giftCertificate1));
@@ -229,7 +229,7 @@ public class OrderServiceTest {
     @Test
     public void shouldThrowErrorWhenSaveOrderWithUserWithEmptyCertificatesTest() {
         List<GiftCertificate> certificates2 = new ArrayList<>();
-        User user1 = new User(1, "user1", new ArrayList<>());
+        User user1 = new User(1, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates2);
         given(translator.toLocale(any())).willReturn("test");
         given(userDao.findById(order1.getUser().getId())).willReturn(Optional.empty());
@@ -260,7 +260,7 @@ public class OrderServiceTest {
         List<GiftCertificate> certificates1 = new ArrayList<>();
         certificates1.add(giftCertificate1);
         certificates1.add(giftCertificate2);
-        User user1 = new User(0, "user1", new ArrayList<>());
+        User user1 = new User(0, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(userDao.findById(order1.getUser().getId())).willReturn(Optional.empty());
@@ -293,8 +293,8 @@ public class OrderServiceTest {
         certificates1.add(giftCertificate2);
         List<GiftCertificate> certificates2 = new ArrayList<>();
         certificates2.add(giftCertificate2);
-        User user1 = new User(1, "user1", new ArrayList<>());
-        User user2 = new User(2, "user2", new ArrayList<>());
+        User user1 = new User(1, "user1");
+        User user2 = new User(2, "user2");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(certificateDao.findById(order1.getCertificates().get(0).getId())).willReturn(Optional.of(giftCertificate1));
@@ -323,7 +323,7 @@ public class OrderServiceTest {
         List<GiftCertificate> certificates1 = new ArrayList<>();
         certificates1.add(giftCertificate1);
         List<GiftCertificate> certificates2 = new ArrayList<>();
-        User user1 = new User(1, "user1", new ArrayList<>());
+        User user1 = new User(1, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(certificateDao.findById(order1.getCertificates().get(0).getId())).willReturn(Optional.of(giftCertificate1));
@@ -351,7 +351,7 @@ public class OrderServiceTest {
         List<GiftCertificate> certificates1 = new ArrayList<>();
         certificates1.add(giftCertificate1);
         List<GiftCertificate> certificates2 = new ArrayList<>();
-        User user1 = new User(1, "user1", new ArrayList<>());
+        User user1 = new User(1, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(certificateDao.findById(order1.getCertificates().get(0).getId())).willReturn(Optional.empty());
@@ -383,7 +383,7 @@ public class OrderServiceTest {
         List<GiftCertificate> certificates1 = new ArrayList<>();
         certificates1.add(giftCertificate1);
         certificates1.add(giftCertificate2);
-        User user1 = new User(1, "user1", new ArrayList<>());
+        User user1 = new User(1, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         Assertions.assertThrows(EntityNotFoundException.class, () -> orderService.findOrderById(-1));
@@ -412,7 +412,7 @@ public class OrderServiceTest {
         List<GiftCertificate> certificates1 = new ArrayList<>();
         certificates1.add(giftCertificate1);
         certificates1.add(giftCertificate2);
-        User user1 = new User(1, "user1", new ArrayList<>());
+        User user1 = new User(1, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(translator.toLocale(any())).willReturn("test");
         given(orderDao.findById(order1.getId())).willReturn(Optional.empty());
@@ -442,7 +442,7 @@ public class OrderServiceTest {
         List<GiftCertificate> certificates1 = new ArrayList<>();
         certificates1.add(giftCertificate1);
         certificates1.add(giftCertificate2);
-        User user1 = new User(1, "user1", new ArrayList<>());
+        User user1 = new User(1, "user1");
         Order order1 = new Order(1, user1, LocalDateTime.now(), "order1", certificates1);
         given(orderDao.findById(order1.getId())).willReturn(Optional.of(order1));
         Optional<Order> expectedOrder = Optional.ofNullable(orderService.findOrderById(order1.getId()));

@@ -29,6 +29,6 @@ public class User implements DatabaseEntity, Serializable {
     private long id;
     @Column(name = "nickname", unique = true, nullable = false)
     private String nickName;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
-    private List<Order> orders;
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+//    private List<Order> orders;
 }

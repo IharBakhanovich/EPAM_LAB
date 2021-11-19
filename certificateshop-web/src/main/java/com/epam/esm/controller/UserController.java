@@ -6,6 +6,7 @@ import com.epam.esm.dto.OrderDto;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
+import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -30,6 +31,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final OrderService orderService;
     private final Translator translator;
 
     /**
@@ -38,8 +40,9 @@ public class UserController {
      * @param userService is the service to inject.
      */
     @Autowired
-    public UserController(UserService userService, Translator translator) {
+    public UserController(UserService userService, OrderService orderService, Translator translator) {
         this.userService = userService;
+        this.orderService = orderService;
         this.translator = translator;
     }
 
@@ -52,7 +55,9 @@ public class UserController {
     @GetMapping(value = "/{userId}/orders")
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<Order>> userOrders(@PathVariable("userId") long userId) {
-        List<Order> orders = userService.findUserById(userId).getOrders();
+
+//        List<Order> orders = userService.findUserById(userId).getOrders();
+        List<Order> orders = orderService.findOrdersByUserId(userId);
         List<EntityModel<Order>> modelFromOrders = new ArrayList<>();
         if (!orders.isEmpty()) {
             modelFromOrders = orders.stream().map(order -> EntityModel.of(order,
@@ -102,14 +107,14 @@ public class UserController {
         EntityModel<User> userEntityModel = EntityModel.of(user, linkTo(methodOn(UserController.class)
                 .userOrders(userId))
                 .withRel(translator.toLocale("ALL_ORDERS_OF_THIS_USER_HATEOAS_LINK_MESSAGE")));
-        if (!user.getOrders().isEmpty()) {
-            userEntityModel.add(linkTo(methodOn(UserController.class)
-                    .costAndTimeOfUsersOrder(user.getId(), user.getOrders().get(0).getId()))
-                    .withRel(translator.toLocale("COST_AND_TIME_OF_THE_USER_ORDER_HATEOAS_LINK_MESSAGE")));
-//            userEntityModel.add(linkTo(methodOn(OrderController.class)
-//                    .orderCertificate(userId, user.getOrders().get(0).getCertificates().get(0).getId()))
-//                    .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
-        }
+//        if (!user.getOrders().isEmpty()) {
+//            userEntityModel.add(linkTo(methodOn(UserController.class)
+//                    .costAndTimeOfUsersOrder(user.getId(), user.getOrders().get(0).getId()))
+//                    .withRel(translator.toLocale("COST_AND_TIME_OF_THE_USER_ORDER_HATEOAS_LINK_MESSAGE")));
+////            userEntityModel.add(linkTo(methodOn(OrderController.class)
+////                    .orderCertificate(userId, user.getOrders().get(0).getCertificates().get(0).getId()))
+////                    .withRel(translator.toLocale("USER_ORDERS_CERTIFICATE_HATEOAS_LINK_MESSAGE")));
+//        }
         userEntityModel.add(linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<>()))
                 .withRel(translator.toLocale("FETCHES_ALL_USERS_HATEOAS_LINK_MESSAGE")));
         userEntityModel.add(linkTo(methodOn(UserController.class).getUserById(userId)).withSelfRel());

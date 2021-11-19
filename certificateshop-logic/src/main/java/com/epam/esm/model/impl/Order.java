@@ -67,6 +67,10 @@ public class Order implements DatabaseEntity, Serializable {
     @Column(name = "name", unique = true, nullable = false)
     @NotNull
     private String name;
-    @Convert(converter = CertificateFromJsonConverter.class)
+    @ManyToMany
+    @JoinTable(name = "userorder_certificate",
+            joinColumns = {@JoinColumn(name = "userorderid", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "certificateid", referencedColumnName = "id")}
+    )
     private List<GiftCertificate> certificates;
 }

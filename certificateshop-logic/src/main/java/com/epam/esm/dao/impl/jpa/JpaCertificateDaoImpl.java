@@ -34,16 +34,16 @@ public class JpaCertificateDaoImpl implements CertificateDao {
             = "insert into has_tag (certificateId, tagId) values (?, ?)";
     private static final String DELETE_VALUES_IN_HAS_TAG_TABLE_SQL
             = "delete from has_tag where certificateId = ? and tagId = ?";
+    public static final String SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID
+            = "select certificateId as certId, tagId as tId from has_tag where certificateId = ? and tagId = ?";
 
-    private GiftCertificateRepository giftCertificateRepository;
     private EntityManager entityManager;
     private ListToResultSetConverter listToResultSetConverter;
     private GiftCertificateExtractor giftCertificateExtractor;
 
     @Autowired
-    public JpaCertificateDaoImpl(GiftCertificateRepository giftCertificateRepository, EntityManager entityManager,
-                                 ListToResultSetConverter listToResultSetConverter, GiftCertificateExtractor giftCertificateExtractor) {
-        this.giftCertificateRepository = giftCertificateRepository;
+    public JpaCertificateDaoImpl(EntityManager entityManager, ListToResultSetConverter listToResultSetConverter,
+                                 GiftCertificateExtractor giftCertificateExtractor) {
         this.entityManager = entityManager;
         this.listToResultSetConverter = listToResultSetConverter;
         this.giftCertificateExtractor = giftCertificateExtractor;
@@ -105,7 +105,8 @@ public class JpaCertificateDaoImpl implements CertificateDao {
      */
     @Override
     public List<GiftCertificate> findAll() {
-        return giftCertificateRepository.findAll();
+        return entityManager.createQuery("select c from Certificate c order by c.id", GiftCertificate.class)
+                .getResultList();
     }
 
     /**
@@ -144,7 +145,10 @@ public class JpaCertificateDaoImpl implements CertificateDao {
      */
     @Override
     public void delete(long id) {
-        giftCertificateRepository.deleteById(id);
+        entityManager
+                .createQuery("delete from Certificate c where c.id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
     }
 
     /**
@@ -170,7 +174,7 @@ public class JpaCertificateDaoImpl implements CertificateDao {
     @Override
     public void saveIdsInHasTagTable(long certificateId, long tagId) {
         List resultList = entityManager.createNativeQuery(
-                        "select certificateId as certId, tagId as tId from has_tag where certificateId = ? and tagId = ?")
+                        SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID)
                 .setParameter(1, certificateId).setParameter(2, tagId).getResultList();
         if(resultList.isEmpty()) {
             entityManager.createNativeQuery(INSERT_VALUES_IN_HAS_TAG_TABLE_SQL).executeUpdate();
@@ -186,22 +190,11 @@ public class JpaCertificateDaoImpl implements CertificateDao {
     @Override
     public void deleteIdsFromHasTagTable(long certificateId, Long tagId) {
         List resultList = entityManager.createNativeQuery(
-                        "select certificateId as certId, tagId as tId from has_tag where certificateId = ? and tagId = ?")
+                        SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID)
                 .setParameter(1, certificateId).setParameter(2, tagId).getResultList();
         if(!resultList.isEmpty()) {
             entityManager.createNativeQuery(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL)
                     .setParameter(1, certificateId).setParameter(2, tagId).executeUpdate();
         }
-    }
-
-    /**
-     * Finds certificate without {@link CertificateTag} by its name.
-     *
-     * @param name the name to find by.
-     * @return {@link Optional<GiftCertificate>}.
-     */
-    @Override
-    public Optional<GiftCertificate> findCertificateWithoutTagsByName(String name) {
-        return Optional.empty();
     }
 }

@@ -16,34 +16,42 @@ import java.util.Optional;
 @Profile("dev")
 @Repository
 public class JdbcUserDaoImpl implements UserDao {
-    private static final String FIND_ALL_ENTITIES_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId";
+    //    private static final String FIND_ALL_ENTITIES_SQL
+//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+//            " from user as u" +
+//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+//            " ON u.id = uo.userId";
+    private static final String FIND_ALL_ENTITIES_SQL = "select u.id as userId, u.nickName as userNickName from user as u";
+    //    private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
+//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+//            " from user as u" +
+//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+//            " ON u.id = uo.userId" +
+//            " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
     private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId" +
+            = "select u.id as userId, u.nickName as userNickName from user as u" +
             " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
     private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from user where id = ?";
     private static final String UPDATE_ENTITY_SQL = "update user set nickName = ? where id = ?";
+    //    private static final String FIND_ENTITY_BY_ID_SQL
+//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+//            " from user as u" +
+//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+//            " ON u.id = uo.userId where u.id = ?";
     private static final String FIND_ENTITY_BY_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId where u.id = ?";
+            = "select u.id as userId, u.nickName as userNickName from user as u where u.id = ?";
+//    private static final String FIND_ENTITY_BY_NAME_SQL
+//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+//            " from user as u" +
+//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+//            " ON u.id = uo.userId where u.nickName = ?";
     private static final String FIND_ENTITY_BY_NAME_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-            " from user as u" +
-            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-            " ON u.id = uo.userId where u.nickName = ?";
+            = "select u.id as userId, u.nickName as userNickName from user as u where u.nickName = ?";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -102,7 +110,7 @@ public class JdbcUserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAll() {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, userExtractor);
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_SQL, userRowMapper);
     }
 
     /**
@@ -114,7 +122,7 @@ public class JdbcUserDaoImpl implements UserDao {
      */
     @Override
     public List<User> findAllPagination(int pageNumber, int amountEntitiesOnThePage) {
-        return jdbcTemplate.query(FIND_ALL_ENTITIES_PAGINATION_SQL, userExtractor,
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_PAGINATION_SQL, userRowMapper,
                 pageNumber * amountEntitiesOnThePage, amountEntitiesOnThePage);
     }
 
@@ -126,7 +134,7 @@ public class JdbcUserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findById(long id) {
-        return jdbcTemplate.query(FIND_ENTITY_BY_ID_SQL, userExtractor, id).stream().findFirst();
+        return jdbcTemplate.query(FIND_ENTITY_BY_ID_SQL, userRowMapper, id).stream().findFirst();
     }
 
     /**
@@ -157,6 +165,6 @@ public class JdbcUserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findByName(String nickName) {
-        return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, userExtractor, nickName).stream().findFirst();
+        return jdbcTemplate.query(FIND_ENTITY_BY_NAME_SQL, userRowMapper, nickName).stream().findFirst();
     }
 }

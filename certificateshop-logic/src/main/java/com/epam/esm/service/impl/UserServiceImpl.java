@@ -139,77 +139,19 @@ public class UserServiceImpl implements UserService {
         List<String> errorMessage = new ArrayList<>();
         if (user.getNickName() != null && !user.getNickName().trim().equals("")) {
             checkIfUserExistInSystem(user, errorMessage);
-            if (user.getOrders() == null || user.getOrders().isEmpty()) {
-                return createNewUser(user);
-            } else {
-                for (Order order : user.getOrders()) {
-                    if (order.getCertificates() == null || order.getCertificates().isEmpty()) {
-                        errorMessage.add(translator.toLocale("CERTIFICATES_IN_ORDER_SHOULD_BE_NOT_EMPTY"));
-                        throw new MethodArgumentNotValidException(
-                                ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_USER_NOT_VALID, errorMessage);
-                    }
-                    for (GiftCertificate certificate : order.getCertificates()) {
-                        checkCertificateId(errorMessage, certificate);
-                    }
-                }
-                if (!errorMessage.isEmpty()) {
-                    throw new MethodArgumentNotValidException(
-                            ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_USER_NOT_VALID, errorMessage);
-                }
-                User createdUser = createNewUser(user);
-                for (Order order : user.getOrders()) {
-                    addOrdersToUser(user, createdUser, order, errorMessage);
-                }
-            }
+            return createNewUser(user);
         } else {
             errorMessage.add(translator.toLocale("THE_FIELD_NICKNAME_SHOULD_BE_NOT_EMPTY"));
             throw new MethodArgumentNotValidException(ERROR_CODE_DUPLICATE + ERROR_CODE_USER_NOT_VALID, errorMessage);
-        }
-        return userDao.findByName(user.getNickName()).get();
-    }
-
-    private void addOrdersToUser(User user, User createdUser, Order order, List<String> errorMessage) {
-        String name = orderService.generateUniqueOrderName(user);
-        Order newOrder = new Order(0, createdUser, LocalDateTime.now(), name, new ArrayList<>());
-        orderDao.save(newOrder);
-        Optional<Order> orderFromDB = orderDao.findByName(name);
-        for (GiftCertificate certificate : order.getCertificates()) {
-            Optional<GiftCertificate> certificateToAddToOrder = certificateDAO.findById(certificate.getId());
-            orderDao.saveIdsInUserorder_certificateTable(orderFromDB.get().getId(), certificate.getId(),
-                    certificateToAddToOrder.get(), certificateToAddToOrder.get().getPrice());
-        }
-    }
-
-    private void checkIfSertificatesExist(Order order, List<String> errorMessage) {
-        for (GiftCertificate certificate : order.getCertificates()) {
-            // certificates are found by id
-            Optional<GiftCertificate> certificateToAddToOrder = certificateDAO.findById(certificate.getId());
-            if (!certificateToAddToOrder.isPresent()) {
-                errorMessage.add(String.format(translator
-                        .toLocale("THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), certificate.getId()));
-                throw new MethodArgumentNotValidException(ERROR_CODE_DUPLICATE + ERROR_CODE_USER_NOT_VALID, errorMessage);
-            }
         }
     }
 
     private User createNewUser(User user) {
         userValidator.validateUser(user, true);
-        User userToSave = new User(0, user.getNickName(), user.getOrders());
+        User userToSave = new User(0, user.getNickName());
         userDao.save(userToSave);
         Optional<User> userFromDB = userDao.findByName(userToSave.getNickName());
         return userFromDB.get();
-    }
-
-    private void checkCertificateId(List<String> errorMessage, GiftCertificate certificate) {
-        if (certificate.getId() == 0) {
-            errorMessage.add(translator.toLocale("CERTIFICATE_ID_SHOULD_NOT_BE_EMPTY"));
-        } else if (certificate.getId() < 0) {
-            errorMessage.add(String.format(
-                    translator.toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"), "certificateId"));
-        } else if (!certificateDAO.findById(certificate.getId()).isPresent()) {
-            errorMessage.add(String.format(translator.toLocale(
-                    "THERE_IS_NO_A_CERTIFICATE_WITH_SUCH_AN_ID_IN_DATABASE"), certificate.getId()));
-        }
     }
 
     private void checkIfUserExistInSystem(User user, List<String> errorMessage) {
@@ -250,11 +192,14 @@ public class UserServiceImpl implements UserService {
     public OrderDto findUserOrderByOrderIdCostAndTime(long userId, long orderId) {
         checkId(userId);
         checkId(orderId);
+        List<Order> orders = orderDao.findAllByUserId(userId);
         Optional<User> userFromDB = userDao.findById(userId);
-        Optional<Order> order = getUserIfPresent(userId, userFromDB).getOrders()
+
+        Optional<Order> order = orders
                 .stream()
                 .filter(order1 -> order1.getId() == orderId)
                 .findFirst();
+
         if (!order.isPresent()) {
             List<String> errorMessage = new ArrayList<>();
             errorMessage.add(String.format(translator

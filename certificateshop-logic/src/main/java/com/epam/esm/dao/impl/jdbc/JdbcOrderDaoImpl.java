@@ -3,6 +3,7 @@ package com.epam.esm.dao.impl.jdbc;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
+import com.epam.esm.model.impl.User;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -26,6 +27,12 @@ public class JdbcOrderDaoImpl implements OrderDao {
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
+    private static final String FIND_ALL_ENTITIES_BY_USER_ID_SQL
+            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
+            " from user as u" +
+            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
+            " ON u.id = uo.userId WHERE uo.userId = ?";
     private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
             = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
@@ -177,5 +184,16 @@ public class JdbcOrderDaoImpl implements OrderDao {
         String certificateInJson = gson.toJson(giftCertificate);
         jdbcTemplate.update(INSERT_VALUES_IN_USERORDER_CERTIFICATE_TABLE_SQL,
                 orderId, certificateId, certificateInJson, certificatePrice);
+    }
+
+    /**
+     * Finds all {@link Order} entity in the database which belongs to the {@link User} with the ID equals {@param userId}.
+     *
+     * @param userId is the ID of the {@link User} which orders is to fetch.
+     * @return List of the {@link Order} objects.
+     */
+    @Override
+    public List<Order> findAllByUserId(long userId) {
+        return jdbcTemplate.query(FIND_ALL_ENTITIES_BY_USER_ID_SQL, orderExtractor, userId);
     }
 }

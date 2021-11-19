@@ -1,6 +1,5 @@
 package com.epam.esm.service;
 
-import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 
@@ -49,4 +48,12 @@ public interface OrderService {
      * @return {@link List<Order>}, that represents all the orders in the system.
      */
     List<Order> findAllOrders(Map<String, String> parameters);
+
+    /**
+     * Returns all {@link Order}s of the {@link User} with the ID equals {@param userId}.
+     *
+     * @param userId is the id of the {@link User} which {@link Order}s to return.
+     * @return {@link List<Order>}, that represents all the orders of the {@link User} with the id equals {@param userId}.
+     */
+    List<Order> findOrdersByUserId(long userId);
 }
