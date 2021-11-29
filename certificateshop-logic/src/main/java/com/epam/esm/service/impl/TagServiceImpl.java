@@ -2,21 +2,26 @@ package com.epam.esm.service.impl;
 
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.TagDao;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
+import com.epam.esm.model.impl.User;
 import com.epam.esm.service.TagService;
 import com.epam.esm.validator.TagValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class TagServiceImpl implements TagService {
     public static final String ERROR_CODE_DUPLICATE = "409";
     public static final String ERROR_CODE_ENTITY_NOT_FOUND = "404";
@@ -40,23 +45,47 @@ public class TagServiceImpl implements TagService {
      */
     @Override
     public CertificateTag createCertificateTag(CertificateTag certificateTag) {
+        checkTagIfExistInSystem(certificateTag);
+        tagValidator.validateTag(certificateTag, true);
+        CertificateTag certificateTag1 = new CertificateTag(0, certificateTag.getName());
+        tagDAO.save(certificateTag1);
+        return findCertificateTagByName(certificateTag1.getName());
+    }
+
+    private void checkTagIfExistInSystem(CertificateTag certificateTag) {
+        List<String> errorMessage = new ArrayList<>();
         if (tagDAO.findByName(certificateTag.getName()).isPresent()) {
-            List<String> errorMessage = new ArrayList<>();
             errorMessage.add(String.format(translator
-                    .toLocale("SUCH_A_TAG_IS_ALREADY_EXIST_IN_THE_SYSTEM"), certificateTag));
+                    .toLocale("TAG_WITH_SUCH_NAME_EXIST_IN_DB_MESSAGE"), certificateTag.getName()));
+        }
+        if (!errorMessage.isEmpty()) {
             throw new DuplicateException(ERROR_CODE_DUPLICATE + ERROR_CODE_TAG_NOT_VALID, errorMessage);
         }
-        tagValidator.validateTag(certificateTag, true);
-        tagDAO.save(certificateTag);
-        return findCertificateTagByName(certificateTag.getName());
     }
 
     /**
      * Returns all {@link CertificateTag}s in the system.
      */
     @Override
-    public List<CertificateTag> findAllCertificateTags() {
-        return tagDAO.findAll();
+    public List<CertificateTag> findAllCertificateTags(Map<String, String> parameters) {
+        List<String> errorMessage = new ArrayList<>();
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        checkLimitAndOffset(errorMessage, pageNumber, amountEntitiesOnThePage);
+        return tagDAO.findAllPagination(pageNumber, amountEntitiesOnThePage);
+    }
+
+    private void checkLimitAndOffset(List<String> errorMessage, int pageNumber, int amountEntitiesOnThePage) {
+        if (pageNumber < 0) {
+            errorMessage.add(translator.toLocale("THE_PAGE_NUMBER_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (amountEntitiesOnThePage < 0) {
+            errorMessage.add(translator.toLocale("THE_AMOUNT_ENTITIES_ON_THE_PAGE_SHOULD_BE_MORE_THAN_0"));
+        }
+        if (!errorMessage.isEmpty()) {
+            throw new MethodArgumentNotValidException(
+                    ERROR_CODE_METHOD_ARGUMENT_NOT_VALID + ERROR_CODE_TAG_NOT_VALID, errorMessage);
+        }
     }
 
     /**
@@ -91,15 +120,14 @@ public class TagServiceImpl implements TagService {
         CertificateTag certificateTagFromDB = tagDAO.findById(tagId).get();
         if (certificateTag.getName() != null) {
             List<String> errorMessage = new ArrayList<>();
-            if (tagDAO.findByName(certificateTag.getName()).isPresent()
-                    && !certificateTag.getName().equals(certificateTagFromDB.getName())) {
+            if (tagDAO.findByName(certificateTag.getName()).isPresent()) {
                 errorMessage.add(String.format(translator
                                 .toLocale("CERTIFICATE_TAG_WITH_SUCH_NAME_EXIST_IN_DB_MESSAGE"),
                         certificateTag.getName()));
                 throw new DuplicateException(ERROR_CODE_DUPLICATE + ERROR_CODE_TAG_NOT_VALID, errorMessage);
             }
         }
-        fillCertificateTagValues(certificateTag, certificateTagFromDB);
+        fillCertificateTagValues(certificateTag, certificateTagFromDB, tagId);
         tagValidator.validateTag(certificateTag, false);
         tagDAO.update(certificateTag);
         return tagDAO.findById(tagId).get();
@@ -114,7 +142,8 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    private void fillCertificateTagValues(CertificateTag certificateTag, CertificateTag certificateTagFromDB) {
+    private void fillCertificateTagValues(CertificateTag certificateTag, CertificateTag certificateTagFromDB, long tagId) {
+        certificateTag.setId(tagId);
         if (certificateTag.getName() == null) {
             certificateTag.setName(certificateTagFromDB.getName());
         }
@@ -159,5 +188,16 @@ public class TagServiceImpl implements TagService {
         } else {
             return certificateTag.get();
         }
+    }
+
+    /**
+     * Returns the most popular {@link CertificateTag} of the {@link User}
+     * with the biggest sum of order price.
+     *
+     * @return {@link CertificateTag}
+     */
+    @Override
+    public CertificateTag mostPopularTagOfTheBestUser() {
+        return tagDAO.findTheMostPopularTagOfTheBestUser().orElse(null);
     }
 }

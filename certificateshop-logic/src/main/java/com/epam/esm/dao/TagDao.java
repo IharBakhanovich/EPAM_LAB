@@ -19,6 +19,16 @@ public interface TagDao extends Dao<CertificateTag> {
     /**
      * Finds all {@link CertificateTag} entity in the database.
      *
+     * @param pageNumber              is the number of the page.
+     * @param amountEntitiesOnThePage is the value of the records,
+     *                                which should be fetched from the database and showed on the page.
+     * @return List of the {@link CertificateTag} objects.
+     */
+    List<CertificateTag> findAllPagination(int pageNumber, int amountEntitiesOnThePage);
+
+    /**
+     * Finds all {@link CertificateTag} entity in the database.
+     *
      * @return List of the {@link CertificateTag} objects.
      */
     @Override
@@ -71,4 +81,12 @@ public interface TagDao extends Dao<CertificateTag> {
      * @param tagId is the id to remove by.
      */
     void deleteFromHasTagByTagId(long tagId);
+
+    /**
+     * Finds the most popular {@link CertificateTag} of the {@link com.epam.esm.model.impl.User}
+     * with the biggest sum of order price.
+     *
+     * @return {@link Optional<CertificateTag>}.
+     */
+    Optional<CertificateTag> findTheMostPopularTagOfTheBestUser();
 }

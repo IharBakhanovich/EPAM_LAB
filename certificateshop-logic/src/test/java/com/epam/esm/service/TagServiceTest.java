@@ -2,6 +2,7 @@ package com.epam.esm.service;
 
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.TagDao;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.model.impl.CertificateTag;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -55,8 +57,9 @@ public class TagServiceTest {
         List<CertificateTag> certificateTags = new ArrayList<>();
         certificateTags.add(certificateTag);
         certificateTags.add(certificateTag1);
-        given(tagDAO.findAll()).willReturn(certificateTags);
-        List<CertificateTag> expectedTags = tagService.findAllCertificateTags();
+        Map<String, String> parameters = ColumnNames.DEFAULT_PARAMS;
+        given(tagDAO.findAllPagination(0, 5)).willReturn(certificateTags);
+        List<CertificateTag> expectedTags = tagService.findAllCertificateTags(parameters);
         Assertions.assertEquals(certificateTags, expectedTags);
     }
 
@@ -161,7 +164,7 @@ public class TagServiceTest {
      */
     @Test
     public void createCertificateTagTest() {
-        final CertificateTag certificateTag = new CertificateTag(1L, "tag1");
+        final CertificateTag certificateTag = new CertificateTag(0, "tag1");
         given(tagDAO.findByName(certificateTag.getName())).willReturn(Optional.empty());
         doReturn(certificateTag).when(tagService).findCertificateTagByName(any()); //изменили поведение реального метода
         tagService.createCertificateTag(certificateTag);

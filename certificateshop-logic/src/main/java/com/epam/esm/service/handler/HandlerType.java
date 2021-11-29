@@ -1,7 +1,10 @@
 package com.epam.esm.service.handler;
 
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.GiftCertificate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,10 +17,27 @@ public enum HandlerType {
     BY_TAG_NAME("tag_name") {
         @Override
         public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
-            return certificates.stream()
-                    .filter(certificate -> certificate.getTags().stream()
-                            .anyMatch(tag -> tag.getName().equals(value)))
-                    .collect(Collectors.toList());
+            List<String> values = Arrays.asList(value.split(","));
+            List<GiftCertificate> certificatesToReturn = new ArrayList<>();
+            for (String tagName : values) {
+                certificatesToReturn = certificates.stream()
+                        .filter(certificate -> certificate.getTags().stream()
+                                .anyMatch(tag -> tag.getName().equals(tagName)))
+                        .collect(Collectors.toList());
+            }
+            return certificatesToReturn;
+        }
+    },
+    BY_OFFSET(ColumnNames.PAGE_NUMBER_PARAM_NAME) {
+        @Override
+        public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
+            return certificates;
+        }
+    },
+    BY_LIMIT(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME) {
+        @Override
+        public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
+            return certificates;
         }
     },
     BY_PART_NAME("part_cert_name") {

@@ -1,11 +1,13 @@
 package com.epam.esm.configuration;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import com.epam.esm.converter.OrderToOrderDtoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -23,6 +25,8 @@ import java.util.Locale;
  * The LogicConfig class.
  */
 @Configuration
+@EnableJpaRepositories("com.epam.esm.repository")
+@EntityScan("com.epam.esm.model")
 @ComponentScan("com.epam.esm")
 @PropertySource("classpath:jdbc.properties")
 public class LogicConfig extends AcceptHeaderLocaleResolver
@@ -56,23 +60,6 @@ public class LogicConfig extends AcceptHeaderLocaleResolver
                 .build();
     }
 
-    @Profile("dev")
-    @Bean
-    public DataSource dataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setDriverClassName(environment.getRequiredProperty(DRIVER_PROPERTY_NAME));
-        config.setJdbcUrl(environment.getRequiredProperty(DB_MYSQL_PATH_PROPERTY_NAME)
-                + environment.getRequiredProperty(DB_SERVER_PROPERTY_NAME)
-                + ":"
-                + environment.getRequiredProperty(DB_PORT_PROPERTY_NAME)
-                + "/"
-                + environment.getRequiredProperty(DB_NAME_PROPERTY_NAME));
-        config.setUsername(environment.getRequiredProperty(DB_USER_PROPERTY_NAME));
-        config.setPassword(environment.getRequiredProperty(DB_PASSWORD_PROPERTY_NAME));
-        config.setMaximumPoolSize(environment.getProperty(DB_MAX_CONNECTIONS_PROPERTY_NAME, Integer.class, 30));
-        return new HikariDataSource(config);
-    }
-
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
         String headerLang = request.getHeader("Accept-Language");
@@ -93,5 +80,10 @@ public class LogicConfig extends AcceptHeaderLocaleResolver
     @Bean
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new OrderToOrderDtoConverter());
     }
 }

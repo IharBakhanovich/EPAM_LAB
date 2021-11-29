@@ -10,6 +10,7 @@ public interface CertificateValidator {
      * Validates {@link GiftCertificate}.
      *
      * @param giftCertificate is {@link GiftCertificate} to validate.
+     * @param isEmptyFieldsAreChecked is the boolean to show whether the empty fields must be validated.
      */
     void validateCertificate(GiftCertificate giftCertificate, boolean isEmptyFieldsAreChecked);
 

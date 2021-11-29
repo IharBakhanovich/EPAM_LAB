@@ -1,8 +1,10 @@
 package com.epam.esm.service;
 
 import com.epam.esm.model.impl.CertificateTag;
+import com.epam.esm.model.impl.User;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface that defines the certificate api of the application.
@@ -19,7 +21,7 @@ public interface TagService {
     /**
      * Returns all {@link CertificateTag}s in the system.
      */
-    List<CertificateTag> findAllCertificateTags();
+    List<CertificateTag> findAllCertificateTags(Map<String, String> parameters);
 
     /**
      * Returns a {@link CertificateTag} by its id.
@@ -49,4 +51,12 @@ public interface TagService {
      * @param name is the name of the {@link CertificateTag} to find in the system.
      */
     CertificateTag findCertificateTagByName(String name);
+
+    /**
+     * Returns the most popular {@link CertificateTag} of the {@link User}
+     * with the biggest sum of order price.
+     *
+     * @return {@link CertificateTag}
+     */
+    CertificateTag mostPopularTagOfTheBestUser();
 }

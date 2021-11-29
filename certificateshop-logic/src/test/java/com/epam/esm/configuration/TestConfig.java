@@ -24,7 +24,7 @@ public class TestConfig extends LogicConfig {
      *
      * @return {@link javax.sql.DataSource}.
      */
-    @Override
+//    @Override
     @Bean(destroyMethod = "shutdown")
     public EmbeddedDatabase dataSource() {
         return new EmbeddedDatabaseBuilder()

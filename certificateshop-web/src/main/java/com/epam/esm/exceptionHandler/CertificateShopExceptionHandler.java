@@ -86,7 +86,6 @@ public class CertificateShopExceptionHandler {
         ExceptionData exceptionData = new ExceptionData();
         exceptionData.setErrorCode(ERROR_CODE_FOR_OTHER_EXCEPTION);
         exceptionData.setErrorMessage(ERROR_MESSAGE_FOR_OTHER_EXCEPTION);
-//        exceptionData.setErrorMessage(exception.getMessage());
         return new ResponseEntity<>(exceptionData, HttpStatus.BAD_REQUEST);
     }
 }

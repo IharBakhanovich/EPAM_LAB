@@ -1,12 +1,21 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
+import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * API to work with {@link CertificateTag}s of the GiftCertificatesShop.
@@ -15,6 +24,7 @@ import java.util.List;
 @RequestMapping("/tags")
 public class CertificateTagController {
     private final TagService tagService;
+    private final Translator translator;
 
     /**
      * Constructs the {@link CertificateTagController}.
@@ -22,8 +32,9 @@ public class CertificateTagController {
      * @param tagService is the service to inject.
      */
     @Autowired
-    public CertificateTagController(TagService tagService) {
+    public CertificateTagController(TagService tagService, Translator translator) {
         this.tagService = tagService;
+        this.translator = translator;
     }
 
     /**
@@ -33,8 +44,28 @@ public class CertificateTagController {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<CertificateTag> tags() {
-        return tagService.findAllCertificateTags();
+    public CollectionModel<EntityModel<CertificateTag>> tags(@RequestParam Map<String, String> parameters) {
+        parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
+        List<CertificateTag> tags = tagService.findAllCertificateTags(parameters);
+
+        int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
+        int amountEntitiesOnThePage
+                = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
+        Map<String, String> paramsNext = ColumnNames.createNextParameters(tags, pageNumber, amountEntitiesOnThePage);
+        Map<String, String> paramsPrev = ColumnNames.createPrevParameters(tags, pageNumber, amountEntitiesOnThePage);
+        List<EntityModel<CertificateTag>> modelFromOrders = tags.stream().map(tag -> EntityModel.of(tag,
+                        linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
+                                .withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")),
+                        linkTo(methodOn(CertificateTagController.class).updateCertificateTag(tag.getId(), tag))
+                                .withRel(translator.toLocale("UPDATES_TAG_HATEOAS_LINK_MESSAGE"))))
+                .collect(Collectors.toList());
+        CollectionModel<EntityModel<CertificateTag>> collectionModel = CollectionModel.of(modelFromOrders);
+        collectionModel.add(linkTo(methodOn(CertificateTagController.class).tags(paramsNext)).
+                        withRel(translator.toLocale("FETCHES_NEXT_PAGE_TAG_HATEOAS_LINK_MESSAGE")),
+                linkTo(methodOn(CertificateTagController.class).tags(paramsPrev)).
+                        withRel(translator.toLocale("FETCHES_PREVIOUS_PAGE_TAG_HATEOAS_LINK_MESSAGE")),
+                linkTo(methodOn(CertificateTagController.class).tags(parameters)).withSelfRel());
+        return collectionModel;
     }
 
     /**
@@ -45,8 +76,18 @@ public class CertificateTagController {
      */
     @GetMapping(value = "/{tagId}")
     @ResponseStatus(HttpStatus.OK)
-    public CertificateTag tag(@PathVariable("tagId") long tagId) {
-        return tagService.findCertificateTagById(tagId);
+    public EntityModel<CertificateTag> tag(@PathVariable("tagId") long tagId) {
+        CertificateTag tag = tagService.findCertificateTagById(tagId);
+        EntityModel<CertificateTag> orderEntityModel
+                = EntityModel.of(tag, linkTo(methodOn(StatisticController.class)
+                .mostPopularTagOfTheBestUser())
+                .withRel(translator.toLocale(
+                        "FETCHES_MOST_POPULAR_TAG_USER_WITH_HIGHEST_ORDERS_SUM_HATEOAS_LINK_MESSAGE")));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
+                .withRel(translator.toLocale("CREATES_NEW_TAG_HATEOAS_LINK_MESSAGE")));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
+                .withRel(translator.toLocale("REMOVES_TAG_HATEOAS_LINK_MESSAGE")));
+        return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId())).withSelfRel());
     }
 
     /**
@@ -68,8 +109,16 @@ public class CertificateTagController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CertificateTag addNewTag(@RequestBody CertificateTag certificateTag) {
-        return tagService.createCertificateTag(certificateTag);
+    public EntityModel<CertificateTag> addNewTag(@RequestBody CertificateTag certificateTag) {
+        CertificateTag tag = tagService.createCertificateTag(certificateTag);
+        EntityModel<CertificateTag> orderEntityModel
+                = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
+                .updateCertificateTag(tag.getId(), tag))
+                .withRel(translator.toLocale("UPDATES_TAG_HATEOAS_LINK_MESSAGE")));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
+                .withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")));
+        return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
+                .withSelfRel());
     }
 
     /**
@@ -82,8 +131,16 @@ public class CertificateTagController {
      */
     @PutMapping(value = "/{tagId}")
     @ResponseStatus(HttpStatus.OK)
-    public CertificateTag updateCertificateTag(@PathVariable("tagId") long tagId,
-                                               @RequestBody CertificateTag certificateTag) {
-        return tagService.updateCertificateTag(tagId, certificateTag);
+    public EntityModel<CertificateTag> updateCertificateTag(@PathVariable("tagId") long tagId,
+                                                            @RequestBody CertificateTag certificateTag) {
+
+        CertificateTag tag = tagService.updateCertificateTag(tagId, certificateTag);
+        EntityModel<CertificateTag> orderEntityModel
+                = EntityModel.of(tag, linkTo(methodOn(CertificateTagController.class)
+                .tag(tagId)).withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")));
+        orderEntityModel.add(linkTo(methodOn(CertificateTagController.class).addNewTag(new CertificateTag()))
+                .withRel(translator.toLocale("CREATES_NEW_TAG_HATEOAS_LINK_MESSAGE")));
+        return orderEntityModel.add(linkTo(methodOn(CertificateTagController.class)
+                .updateCertificateTag(tagId, certificateTag)).withSelfRel());
     }
 }

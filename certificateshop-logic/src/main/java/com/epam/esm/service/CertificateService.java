@@ -20,6 +20,9 @@ public interface CertificateService {
 
     /**
      * Returns all certificates in the system.
+     *
+     * @param filters the filters and parameters to apply to the values to be returned.
+     * @return {@link List<GiftCertificate}.
      */
     List<GiftCertificate> findAllCertificates(Map<String, String> filters);
 
