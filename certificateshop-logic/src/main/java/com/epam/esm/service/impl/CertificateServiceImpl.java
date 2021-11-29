@@ -126,18 +126,12 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     private void saveRelations(GiftCertificate giftCertificate) {
-//        List<CertificateTag> allTagsInDB = tagDAO.findAll();
         Optional<GiftCertificate> certificate
                 = certificateDAO.findByName((giftCertificate.getName()));
         long newGiftCertificateId = certificate.get().getId();
         for (CertificateTag certificateTag : fetchTagsWithUniqueNames(giftCertificate.getTags())) {
             CertificateTag tag = tagDAO.findByName(certificateTag.getName()).get();
             certificateDAO.saveIdsInHasTagTable(newGiftCertificateId, tag.getId());
-//            for (CertificateTag certificateTagFromDB : allTagsInDB) {
-//                if (certificateTag.getName().equals(certificateTagFromDB.getName())) {
-//                    certificateDAO.saveIdsInHasTagTable(newGiftCertificateId, certificateTagFromDB.getId());
-//                }
-//            }
         }
     }
 

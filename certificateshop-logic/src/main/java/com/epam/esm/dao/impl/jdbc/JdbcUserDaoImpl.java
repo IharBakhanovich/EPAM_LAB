@@ -6,7 +6,6 @@ import com.epam.esm.model.impl.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -16,40 +15,15 @@ import java.util.Optional;
 @Profile("dev")
 @Repository
 public class JdbcUserDaoImpl implements UserDao {
-    //    private static final String FIND_ALL_ENTITIES_SQL
-//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-//            " from user as u" +
-//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-//            " ON u.id = uo.userId";
     private static final String FIND_ALL_ENTITIES_SQL = "select u.id as userId, u.nickName as userNickName from user as u";
-    //    private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
-//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-//            " from user as u" +
-//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-//            " ON u.id = uo.userId" +
-//            " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
     private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
             = "select u.id as userId, u.nickName as userNickName from user as u" +
             " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
     private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from user where id = ?";
     private static final String UPDATE_ENTITY_SQL = "update user set nickName = ? where id = ?";
-    //    private static final String FIND_ENTITY_BY_ID_SQL
-//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-//            " from user as u" +
-//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-//            " ON u.id = uo.userId where u.id = ?";
     private static final String FIND_ENTITY_BY_ID_SQL
             = "select u.id as userId, u.nickName as userNickName from user as u where u.id = ?";
-//    private static final String FIND_ENTITY_BY_NAME_SQL
-//            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
-//            " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
-//            " from user as u" +
-//            " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
-//            " ON u.id = uo.userId where u.nickName = ?";
     private static final String FIND_ENTITY_BY_NAME_SQL
             = "select u.id as userId, u.nickName as userNickName from user as u where u.nickName = ?";
 
@@ -58,9 +32,6 @@ public class JdbcUserDaoImpl implements UserDao {
 
     @Autowired
     private RowMapper<User> userRowMapper;
-
-    @Autowired
-    private UserExtractor userExtractor;
 
     public JdbcUserDaoImpl() {
     }
@@ -81,15 +52,6 @@ public class JdbcUserDaoImpl implements UserDao {
      */
     public void setUserRowMapper(RowMapper<User> userRowMapper) {
         this.userRowMapper = userRowMapper;
-    }
-
-    /**
-     * The setter of the {@link ResultSetExtractor<List<User>>}.
-     *
-     * @param userExtractor is the {@link ResultSetExtractor<List<User>>} to set.
-     */
-    public void setUserExtractor(UserExtractor userExtractor) {
-        this.userExtractor = userExtractor;
     }
 
     /**

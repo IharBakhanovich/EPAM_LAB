@@ -7,7 +7,6 @@ import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dao.impl.jdbc.GiftCertificateExtractor;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.GiftCertificate;
-import com.epam.esm.repository.GiftCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -25,6 +24,8 @@ import java.util.*;
 @Repository
 @Transactional
 public class JpaCertificateDaoImpl implements CertificateDao {
+    public static final String SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID
+            = "select certificateId as certId, tagId as tId from has_tag where certificateId = ? and tagId = ?";
     private static final List<String> CERTIFICATE_HEADERS = Arrays.asList(ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_ID,
             ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_NAME, ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_DESCRIPTION,
             ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_DURATION, ColumnNames.TABLE_GIFT_CERTIFICATE_COLUMN_CREATE_DATE,
@@ -34,9 +35,6 @@ public class JpaCertificateDaoImpl implements CertificateDao {
             = "insert into has_tag (certificateId, tagId) values (?, ?)";
     private static final String DELETE_VALUES_IN_HAS_TAG_TABLE_SQL
             = "delete from has_tag where certificateId = ? and tagId = ?";
-    public static final String SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID
-            = "select certificateId as certId, tagId as tId from has_tag where certificateId = ? and tagId = ?";
-
     private EntityManager entityManager;
     private ListToResultSetConverter listToResultSetConverter;
     private GiftCertificateExtractor giftCertificateExtractor;
@@ -176,7 +174,7 @@ public class JpaCertificateDaoImpl implements CertificateDao {
         List resultList = entityManager.createNativeQuery(
                         SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID)
                 .setParameter(1, certificateId).setParameter(2, tagId).getResultList();
-        if(resultList.isEmpty()) {
+        if (resultList.isEmpty()) {
             entityManager.createNativeQuery(INSERT_VALUES_IN_HAS_TAG_TABLE_SQL).executeUpdate();
         }
     }
@@ -192,7 +190,7 @@ public class JpaCertificateDaoImpl implements CertificateDao {
         List resultList = entityManager.createNativeQuery(
                         SELECT_CERTIFICATE_ID_AS_CERT_ID_TAG_ID_AS_T_ID_FROM_HAS_TAG_WHERE_CERTIFICATE_ID_AND_TAG_ID)
                 .setParameter(1, certificateId).setParameter(2, tagId).getResultList();
-        if(!resultList.isEmpty()) {
+        if (!resultList.isEmpty()) {
             entityManager.createNativeQuery(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL)
                     .setParameter(1, certificateId).setParameter(2, tagId).executeUpdate();
         }

@@ -2,7 +2,6 @@ package com.epam.esm.dao.impl.jpa;
 
 import com.epam.esm.dao.ListToResultSetConverter;
 import com.epam.esm.dao.UserDao;
-import com.epam.esm.dao.impl.jdbc.UserExtractor;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -30,15 +27,13 @@ public class JpaUserDaoImpl implements UserDao {
     private UserRepository userRepository;
     private EntityManager entityManager;
     private ListToResultSetConverter listToResultSetConverter;
-    private UserExtractor userExtractor;
 
     @Autowired
     public JpaUserDaoImpl(UserRepository userRepository, EntityManager entityManager,
-                          ListToResultSetConverter resultListToResultSetConverter, UserExtractor userExtractor) {
+                          ListToResultSetConverter resultListToResultSetConverter) {
         this.userRepository = userRepository;
         this.entityManager = entityManager;
         this.listToResultSetConverter = resultListToResultSetConverter;
-        this.userExtractor = userExtractor;
     }
 
     /**

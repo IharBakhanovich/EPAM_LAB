@@ -7,7 +7,6 @@ import com.epam.esm.dao.impl.jdbc.OrderExtractor;
 import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
-import com.epam.esm.repository.OrderRepository;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;

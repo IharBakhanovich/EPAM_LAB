@@ -10,11 +10,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * The class that implements the CertificateDAO interface.
@@ -26,14 +27,6 @@ public class JdbcCertificateDaoImpl implements CertificateDao {
 
     private static final Logger LOGGER = LogManager.getLogger(JdbcCertificateDaoImpl.class);
 
-    private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
-            = "select c.id as certificateId, c.name as certificateName," +
-            " c.description as certificateDescription, c.duration as certificateDuration," +
-            " c.create_date as certificateCreateDate, c.price as certificatePrice," +
-            " c.last_update_date as certificateLastUpdateDate, t.id as tagId, t.name as tagName" +
-            " from gift_certificate as c LEFT OUTER JOIN (has_tag as h LEFT OUTER JOIN tag as t ON t.id = h.tagId)" +
-            " ON c.id = h.certificateId WHERE c.id IN (select * from (select id from gift_certificate order by id" +
-            " LIMIT ?, ?) as query1)";
     private static final String FIND_ALL_ENTITIES_SQL
             = "select c.id as certificateId, c.name as certificateName," +
             " c.description as certificateDescription, c.duration as certificateDuration," +

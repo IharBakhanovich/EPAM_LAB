@@ -52,7 +52,7 @@ public class CertificateTagController {
         int amountEntitiesOnThePage
                 = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(tags, pageNumber, amountEntitiesOnThePage);
-        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(tags, pageNumber, amountEntitiesOnThePage);
+        Map<String, String> paramsPrev = ColumnNames.createPrevParameters(tags, pageNumber, amountEntitiesOnThePage);
         List<EntityModel<CertificateTag>> modelFromOrders = tags.stream().map(tag -> EntityModel.of(tag,
                         linkTo(methodOn(CertificateTagController.class).tag(tag.getId()))
                                 .withRel(translator.toLocale("FETCHES_AND_REMOVES_TAG_HATEOAS_LINK_MESSAGE")),

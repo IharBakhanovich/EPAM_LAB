@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +20,6 @@ import java.util.Optional;
  */
 @Profile("dev_jpa")
 @Repository
-//@Transactional
 public class JpaTagDaoImpl implements TagDao {
     public static final String FIND_MOST_POPULAR_TAG_BY_THE_BEST_USER =
             "SELECT tag.id as tagId, tag.name as tagName FROM tag" +
@@ -157,7 +155,7 @@ public class JpaTagDaoImpl implements TagDao {
         List resultList = entityManager.createNativeQuery(
                         "select certificateId as certId, tagId as tId from has_tag where tagId = ?")
                 .setParameter(1, tagId).getResultList();
-        if(!resultList.isEmpty()) {
+        if (!resultList.isEmpty()) {
             entityManager.createNativeQuery(DELETE_VALUES_IN_HAS_TAG_TABLE_SQL)
                     .setParameter(1, tagId).executeUpdate();
         }

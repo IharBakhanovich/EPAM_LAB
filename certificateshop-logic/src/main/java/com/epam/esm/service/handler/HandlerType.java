@@ -19,16 +19,12 @@ public enum HandlerType {
         public List<GiftCertificate> handle(List<GiftCertificate> certificates, String value) {
             List<String> values = Arrays.asList(value.split(","));
             List<GiftCertificate> certificatesToReturn = new ArrayList<>();
-            for (String tagName: values) {
+            for (String tagName : values) {
                 certificatesToReturn = certificates.stream()
                         .filter(certificate -> certificate.getTags().stream()
                                 .anyMatch(tag -> tag.getName().equals(tagName)))
                         .collect(Collectors.toList());
             }
-//            return certificates.stream()
-//                    .filter(certificate -> certificate.getTags().stream()
-//                            .anyMatch(tag -> tag.getName().equals(value)))
-//                    .collect(Collectors.toList());
             return certificatesToReturn;
         }
     },

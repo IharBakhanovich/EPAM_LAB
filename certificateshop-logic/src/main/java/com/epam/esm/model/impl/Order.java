@@ -1,7 +1,6 @@
 package com.epam.esm.model.impl;
 
 import com.epam.esm.model.DatabaseEntity;
-import com.epam.esm.model.converter.CertificateFromJsonConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
