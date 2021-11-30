@@ -1,6 +1,7 @@
 package com.epam.esm.configuration;
 
 import com.epam.esm.converter.OrderToOrderDtoConverter;
+import com.epam.esm.converter.UserToUserDtoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.*;
@@ -85,5 +86,6 @@ public class LogicConfig extends AcceptHeaderLocaleResolver
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new OrderToOrderDtoConverter());
+        registry.addConverter(new UserToUserDtoConverter());
     }
 }

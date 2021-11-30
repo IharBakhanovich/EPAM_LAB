@@ -3,6 +3,7 @@ package com.epam.esm.controller;
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dto.OrderDto;
+import com.epam.esm.dto.UserDto;
 import com.epam.esm.model.impl.CertificateTag;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
@@ -86,7 +87,7 @@ public class UserController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User addNewUser(@RequestBody User user) {
+    public UserDto addNewUser(@RequestBody User user) {
         return userService.createUser(user);
     }
 
@@ -98,9 +99,9 @@ public class UserController {
      */
     @GetMapping(value = "/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public EntityModel<User> getUserById(@PathVariable("userId") long userId) {
-        User user = userService.fetchUserById(userId);
-        EntityModel<User> userEntityModel = EntityModel.of(user, linkTo(methodOn(UserController.class)
+    public EntityModel<UserDto> getUserById(@PathVariable("userId") long userId) {
+        UserDto user = userService.fetchUserById(userId);
+        EntityModel<UserDto> userEntityModel = EntityModel.of(user, linkTo(methodOn(UserController.class)
                 .userOrders(userId))
                 .withRel(translator.toLocale("ALL_ORDERS_OF_THIS_USER_HATEOAS_LINK_MESSAGE")));
         userEntityModel.add(linkTo(methodOn(UserController.class).fetchAllUsers(new HashMap<>()))
@@ -120,15 +121,15 @@ public class UserController {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CollectionModel<EntityModel<User>> fetchAllUsers(@RequestParam Map<String, String> parameters) {
+    public CollectionModel<EntityModel<UserDto>> fetchAllUsers(@RequestParam Map<String, String> parameters) {
         parameters = ColumnNames.validateParameters(parameters, ColumnNames.DEFAULT_AMOUNT_ENTITIES_ON_THE_PAGE);
-        List<User> users = userService.findAllUsers(parameters);
+        List<UserDto> users = userService.findAllUsers(parameters);
         int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
         int amountEntitiesOnThePage
                 = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(users, pageNumber, amountEntitiesOnThePage);
         Map<String, String> paramsPrev = ColumnNames.createPrevParameters(users, pageNumber, amountEntitiesOnThePage);
-        List<EntityModel<User>> modelFromOrders = users.stream().map(user -> EntityModel.of(user,
+        List<EntityModel<UserDto>> modelFromOrders = users.stream().map(user -> EntityModel.of(user,
                         linkTo(methodOn(UserController.class).getUserById(user.getId()))
                                 .withRel(translator.toLocale("FETCHES_THE_USER_HATEOAS_LINK_MESSAGE"))))
                 .collect(Collectors.toList());

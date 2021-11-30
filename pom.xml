@@ -51,6 +51,7 @@
         <spring-data-bom.version>2021.0.5</spring-data-bom.version>
         <mockrunner-jdbc.version>2.0.4</mockrunner-jdbc.version>
         <mockrunner.version>0.3.1</mockrunner.version>
+        <spring-boot-security.version>2.5.5</spring-boot-security.version>
     </properties>
 
     <dependencyManagement>
@@ -204,6 +205,13 @@
             <artifactId>log4j-api</artifactId>
             <version>${log4j.version}</version>
         </dependency>
+
+<!--        &lt;!&ndash; spring security &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-security</artifactId>-->
+<!--            <version>${spring-boot-security.version}</version>-->
+<!--        </dependency>-->
 
 
         <!--springframework-->

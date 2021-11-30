@@ -7,12 +7,10 @@ import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dto.OrderDto;
+import com.epam.esm.dto.UserDto;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
-import com.epam.esm.model.impl.CertificateTag;
-import com.epam.esm.model.impl.GiftCertificate;
-import com.epam.esm.model.impl.Order;
-import com.epam.esm.model.impl.User;
+import com.epam.esm.model.impl.*;
 import com.epam.esm.service.impl.UserServiceImpl;
 import com.epam.esm.validator.CertificateValidator;
 import com.epam.esm.validator.TagValidator;
@@ -92,15 +90,19 @@ public class UserServiceTest {
      */
     @Test
     public void findAllUsersTest() {
-        User user1 = new User(1, "user1");
-        User user2 = new User(2, "user2");
+        User user1 = new User(1, "user1", "pass", Role.USER);
+        User user2 = new User(2, "user2", "pass" ,Role.USER);
         List<User> users = new ArrayList<>();
         users.add(user1);
         users.add(user2);
         Map<String, String> parameters = ColumnNames.DEFAULT_PARAMS;
         given(userDao.findAllPagination(0, 5)).willReturn(users);
-        List<User> expectedUsers = userService.findAllUsers(parameters);
-        Assertions.assertEquals(users, expectedUsers);
+        List<UserDto> expectedUsers = userService.findAllUsers(parameters);
+        List<UserDto> usersAsDtos = new ArrayList<>();
+        for (User user : users) {
+            usersAsDtos.add(conversionService.convert(user, UserDto.class));
+        }
+        Assertions.assertEquals(usersAsDtos, expectedUsers);
     }
 
     /**
@@ -116,10 +118,10 @@ public class UserServiceTest {
      */
     @Test
     public void findUserByIdMethodTest() {
-        User user1 = new User(1, "user1");
+        User user1 = new User(1, "user1", "pass", Role.USER);
         given(userDao.findById(1)).willReturn(Optional.of(user1));
-        User expectedUser = userService.findUserById(user1.getId());
-        Assertions.assertEquals(user1, expectedUser);
+        UserDto expectedUser = userService.findUserById(user1.getId());
+        Assertions.assertEquals(conversionService.convert(user1, UserDto.class), expectedUser);
     }
 
     /**
@@ -127,7 +129,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToCreateUserWithTheEmptyNameByCreateUserMethodTest() {
-        User user1 = new User(1, "");
+        User user1 = new User(1, "", "pass", Role.USER);
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.createUser(user1));
     }
 
@@ -136,7 +138,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToCreateUserWithTheNullNameByCreateUserMethodTest() {
-        User user1 = new User(1, null);
+        User user1 = new User(1, null, "pass", Role.USER);
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.createUser(user1));
     }
 
@@ -145,7 +147,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorWhenThereIsNoSuchUserInSystemInFindUserByIdMethodTest() {
-        User user1 = new User(1, "user1");
+        User user1 = new User(1, "user1", "pass", Role.USER);
         given(userDao.findByName("user1")).willReturn(Optional.of(user1));
         given(translator.toLocale(any())).willReturn("test");
         Assertions.assertThrows(DuplicateException.class, () -> userService.createUser(user1));
@@ -156,7 +158,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToGetResultWithUserIdLessThan0ByFindUserOrderByOrderIdCostAndTimeMethodTest() {
-//        User user1 = new User(1, "", new ArrayList<>());
+        User user1 = new User(1, "", "pass", Role.USER);
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.findUserOrderByOrderIdCostAndTime(-1, 1));
     }
 
@@ -184,7 +186,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToGetResultWithNoExistedOrderByFindUserOrderByOrderIdCostAndTimeMethodTest() {
-        User user = new User(1, "user1");
+        User user = new User(1, "user1", "pass", Role.USER);
         given(translator.toLocale(any())).willReturn("test");
         given(userDao.findById(1)).willReturn(Optional.of(user));
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.findUserOrderByOrderIdCostAndTime(1, 1));
@@ -209,7 +211,7 @@ public class UserServiceTest {
         Order order1 = new Order(1, null, LocalDateTime.now(), "order1", certificates1);
         List<Order> orders = new ArrayList<>();
         orders.add(order1);
-        User user = new User(1, "user1");
+        User user = new User(1, "user1", "pass", Role.USER);
         order1.setUser(user);
         given(userDao.findById(1)).willReturn(Optional.of(user));
         given(conversionService.convert(order1, OrderDto.class)).willReturn(new OrderDto(order1.getCertificates().get(0).getPrice(),
