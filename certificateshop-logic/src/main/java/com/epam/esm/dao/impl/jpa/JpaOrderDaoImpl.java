@@ -32,31 +32,31 @@ public class JpaOrderDaoImpl implements OrderDao {
     private static final String INSERT_ENTITY_SQL
             = "insert into userorder (userId, create_date, name) values (?, ?, ?)";
     private static final String FIND_ENTITY_BY_NAME_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId where uo.name = ?";
     private static final String FIND_ENTITY_BY_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId where uo.id = ?";
     private static final String FIND_ALL_ENTITIES_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
     private static final String FIND_ALL_ENTITIES_BY_USER_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId WHERE uo.userId = ?";
     private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
@@ -66,7 +66,8 @@ public class JpaOrderDaoImpl implements OrderDao {
             = "insert into userorder_certificate" +
             " (userOrderId, certificateId, certificateInJSON, certificatePrice) values (?, ?, ?, ?)";
     private static final List<String> ORDER_HEADERS = Arrays.asList(ColumnNames.TABLE_USER_COLUMN_ID,
-            ColumnNames.TABLE_USER_COLUMN_NICKNAME, ColumnNames.TABLE_USERORDER_COLUMN_ID,
+            ColumnNames.TABLE_USER_COLUMN_NICKNAME, ColumnNames.TABLE_USER_COLUMN_PASSWORD,
+            ColumnNames.TABLE_USER_COLUMN_ROLE, ColumnNames.TABLE_USERORDER_COLUMN_ID,
             ColumnNames.TABLE_USERORDER_COLUMN_CREATE_DATE, ColumnNames.TABLE_USERORDER_COLUMN_NAME,
             ColumnNames.TABLE_USERORDER_CERTIFICATE_COLUMN_CERTIFICATEINJSON);
     private EntityManager entityManager;
