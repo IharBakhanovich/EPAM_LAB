@@ -1,10 +1,10 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.configuration.Translator;
 import com.epam.esm.dto.ResponseLoginDto;
 import com.epam.esm.dto.UserDetailsDto;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.security.jwt.JwtUtils;
-import com.epam.esm.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,11 +13,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 
 /**
@@ -26,9 +28,15 @@ import java.util.Base64;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @RestController
 public class AuthenticationController {
-    private final UserService userService;
+    public static final String HEADER_NAME = "Authorization";
+    public static final String HEADER_STARTS_WITH = "Bearer ";
+
+    @Autowired
     private final AuthenticationManager authenticationManager;
+    @Autowired
     private final JwtUtils jwtUtils;
+    @Autowired
+    private final Translator translator;
 
     /**
      * The method that realises the 'POST /login' query.
@@ -40,7 +48,7 @@ public class AuthenticationController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ResponseLoginDto> loginUser(
             @RequestHeader(name = "Authorization") String authenticationEncoded) {
-        // decoding the encoded string
+        // decoding the encoded UsernamePasswordAuthenticationToken
         String encoded = authenticationEncoded.substring(6);
         byte[] decoded = Base64.getDecoder().decode(encoded);
         String stringDecoded = new String(decoded);
@@ -53,6 +61,7 @@ public class AuthenticationController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
         UserDetailsDto userDetails = (UserDetailsDto) authentication.getPrincipal();
+        jwtUtils.addTokenToLoginTokens(jwt);
         return ResponseEntity.ok(ResponseLoginDto.builder()
                 .token(jwt)
                 .id(userDetails.getId())
@@ -61,17 +70,24 @@ public class AuthenticationController {
                 .build());
     }
 
-//    /**
-//     * The method that realises the 'POST /logout' query.
-//     *
-//     * @param requestLoginDto is the Dto with nicknameID and password of the {@link User} that is authenticated.
-//     * @return {@link ResponseLoginDto} with the JwtToken, username, id and role.
-//     */
-//    @GetMapping(value = "/logout")
-//    @ResponseStatus(HttpStatus.OK)
-//    public ResponseEntity<ResponseLoginDto> logout(RequestLoginDto requestLoginDto) {
-//
-//    }
-
-
+    /**
+     * The method that realises the 'POST /logout' query.
+     *
+     * @param request is the {@link HttpServletRequest}.
+     * @return a String that is the answer to the {@link User}.
+     */
+    @PostMapping(value = "/signout")
+    @ResponseStatus(HttpStatus.OK)
+    public String logout(HttpServletRequest request) {
+        String headerAuth = request.getHeader(HEADER_NAME);
+        String authToken = null;
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith(HEADER_STARTS_WITH)) {
+            authToken = headerAuth.substring(7, headerAuth.length());
+        }
+        if (authToken == null) {
+            return translator.toLocale("SOMETHING_WENT_WRONG");
+        }
+        jwtUtils.removeTokenFromLoginTokens(authToken);
+        return translator.toLocale("YOU_ARE_LOGGED_OUT_YOUR_TOKEN_IS_NOT_MORE_VALID");
+    }
 }

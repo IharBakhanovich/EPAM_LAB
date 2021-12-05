@@ -22,6 +22,7 @@ import com.epam.esm.validator.TagValidator;
 import com.epam.esm.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -160,7 +161,7 @@ public class UserServiceImpl implements UserService {
     private UserDto createNewUser(User user) {
         userValidator.validateUser(user, true);
         // always created new user with the Role.USER
-        User userToSave = new User(0, user.getNickName(), passwordEncoder.encode(user.getPassword()), Role.USER);
+        User userToSave = new User(0, user.getNickName(), passwordEncoder.encode(user.getPassword()), Role.ROLE_USER);
         userDao.save(userToSave);
         Optional<User> userFromDB = userDao.findByName(userToSave.getNickName());
         return conversionService.convert(userFromDB.get(), UserDto.class);
@@ -179,6 +180,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param userId is the id to find in the system.
      */
+    @PreAuthorize("#userId == authentication.principal.id")
     @Override
     public UserDto fetchUserById(long userId) {
         checkId(userId);

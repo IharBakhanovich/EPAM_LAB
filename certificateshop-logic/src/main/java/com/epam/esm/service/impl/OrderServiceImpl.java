@@ -19,6 +19,7 @@ import com.epam.esm.validator.UserValidator;
 import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -140,6 +141,7 @@ public class OrderServiceImpl implements OrderService {
      * @param order is the {@link Order} to create.
      * @return created {@link Order}
      */
+    @PreAuthorize("#order.user.id == authentication.principal.id") // user can make an order only for himself
     @Override
     public Order createOrder(Order order) {
         List<String> errorMessage = new ArrayList<>();
@@ -229,7 +231,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void validateId(long userId) {
         String errorMessage = checkId(userId, "userId");
-        if( errorMessage != null) {
+        if (errorMessage != null) {
             List<String> errorMessages = new ArrayList<>();
             errorMessages.add(translator
                     .toLocale("SOME_ID_SHOULD_NOT_BE_LESS_THAN_ONE"));

@@ -1,7 +1,6 @@
 package com.epam.esm.security.jwt;
 
 import com.epam.esm.dto.UserDetailsDto;
-import com.epam.esm.model.impl.User;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 @Component
@@ -18,11 +19,14 @@ public class JwtUtils {
     public static final String JWT_TOKEN_IS_EXPIRED = "JWT token is expired: {}";
     public static final String JWT_TOKEN_IS_UNSUPPORTED = "JWT token is unsupported: {}";
     public static final String JWT_CLAIMS_STRING_IS_EMPTY = "JWT claims string is empty: {}";
+    public static final String JWT_SECRET = "${jwtSecret}";
+    public static final String JWT_EXPIRATION_MS = "${jwtExpirationMs}";
 
-    @Value("${jwtSecret}")
+    private List<String> tockens = new CopyOnWriteArrayList();
+    @Value(JWT_SECRET)
     private String jwtSecret;
 
-    @Value("${jwtExpirationMs}")
+    @Value(JWT_EXPIRATION_MS)
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
@@ -57,5 +61,17 @@ public class JwtUtils {
             log.error(JWT_CLAIMS_STRING_IS_EMPTY, e.getMessage());
         }
         return false;
+    }
+
+    public boolean ifContainsToken(String jwt) {
+        return tockens.contains(jwt);
+    }
+
+    public void addTokenToLoginTokens(String jwt) {
+        tockens.add(jwt);
+    }
+
+    public void removeTokenFromLoginTokens(String jwt) {
+        tockens.remove(jwt);
     }
 }

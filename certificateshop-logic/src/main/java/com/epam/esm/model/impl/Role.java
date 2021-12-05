@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum Role implements DatabaseEntity {
-    UNAUTHORIZED(0L),
-    ADMIN(1L),
-    USER(2L);
+    ROLE_UNAUTHORIZED(0L),
+    ROLE_ADMIN(1L),
+    ROLE_USER(2L);
     public static final String ROLE_NOT_VALID = "05";
     /**
      * creates the {@link List <Role>} with all the values of the {@link Role}.
@@ -69,6 +69,4 @@ public enum Role implements DatabaseEntity {
     public Long getId() {
         return this.id;
     }
-
-
 }

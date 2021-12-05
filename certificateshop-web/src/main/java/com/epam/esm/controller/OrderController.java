@@ -3,7 +3,6 @@ package com.epam.esm.controller;
 import com.epam.esm.configuration.Translator;
 import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.model.impl.CertificateTag;
-import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.service.OrderService;
@@ -46,7 +45,7 @@ public class OrderController {
      * The method that realises the 'GET /orders/{orderId}' query.
      *
      * @param orderId is the ID of the {@link Order} to find.
-     * @return {@link GiftCertificate} with the certificateId if such an id exists in the system.
+     * @return {@link Order} with the orderId if such an id exists in the system.
      */
     @GetMapping(value = "/{orderId}")
     @ResponseStatus(HttpStatus.OK)
@@ -79,7 +78,7 @@ public class OrderController {
         int amountEntitiesOnThePage
                 = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
         Map<String, String> paramsNext = ColumnNames.createNextParameters(orders, pageNumber, amountEntitiesOnThePage);
-        Map<String,String> paramsPrev = ColumnNames.createPrevParameters(orders, pageNumber, amountEntitiesOnThePage);
+        Map<String, String> paramsPrev = ColumnNames.createPrevParameters(orders, pageNumber, amountEntitiesOnThePage);
 
         List<EntityModel<Order>> moderFromOrders = orders.stream().map(order -> EntityModel.of(order,
                         linkTo(methodOn(OrderController.class).fetchOrderById(order.getId())).

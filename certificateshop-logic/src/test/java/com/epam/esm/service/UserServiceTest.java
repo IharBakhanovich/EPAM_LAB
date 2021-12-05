@@ -90,8 +90,8 @@ public class UserServiceTest {
      */
     @Test
     public void findAllUsersTest() {
-        User user1 = new User(1, "user1", "pass", Role.USER);
-        User user2 = new User(2, "user2", "pass" ,Role.USER);
+        User user1 = new User(1, "user1", "pass", Role.ROLE_USER);
+        User user2 = new User(2, "user2", "pass", Role.ROLE_USER);
         List<User> users = new ArrayList<>();
         users.add(user1);
         users.add(user2);
@@ -118,7 +118,7 @@ public class UserServiceTest {
      */
     @Test
     public void findUserByIdMethodTest() {
-        User user1 = new User(1, "user1", "pass", Role.USER);
+        User user1 = new User(1, "user1", "pass", Role.ROLE_USER);
         given(userDao.findById(1)).willReturn(Optional.of(user1));
         UserDto expectedUser = userService.findUserById(user1.getId());
         Assertions.assertEquals(conversionService.convert(user1, UserDto.class), expectedUser);
@@ -129,7 +129,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToCreateUserWithTheEmptyNameByCreateUserMethodTest() {
-        User user1 = new User(1, "", "pass", Role.USER);
+        User user1 = new User(1, "", "pass", Role.ROLE_USER);
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.createUser(user1));
     }
 
@@ -138,7 +138,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToCreateUserWithTheNullNameByCreateUserMethodTest() {
-        User user1 = new User(1, null, "pass", Role.USER);
+        User user1 = new User(1, null, "pass", Role.ROLE_USER);
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.createUser(user1));
     }
 
@@ -147,7 +147,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorWhenThereIsNoSuchUserInSystemInFindUserByIdMethodTest() {
-        User user1 = new User(1, "user1", "pass", Role.USER);
+        User user1 = new User(1, "user1", "pass", Role.ROLE_USER);
         given(userDao.findByName("user1")).willReturn(Optional.of(user1));
         given(translator.toLocale(any())).willReturn("test");
         Assertions.assertThrows(DuplicateException.class, () -> userService.createUser(user1));
@@ -158,7 +158,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToGetResultWithUserIdLessThan0ByFindUserOrderByOrderIdCostAndTimeMethodTest() {
-        User user1 = new User(1, "", "pass", Role.USER);
+        User user1 = new User(1, "", "pass", Role.ROLE_USER);
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.findUserOrderByOrderIdCostAndTime(-1, 1));
     }
 
@@ -186,7 +186,7 @@ public class UserServiceTest {
      */
     @Test
     public void shouldThrowErrorDuringTheAttemptToGetResultWithNoExistedOrderByFindUserOrderByOrderIdCostAndTimeMethodTest() {
-        User user = new User(1, "user1", "pass", Role.USER);
+        User user = new User(1, "user1", "pass", Role.ROLE_USER);
         given(translator.toLocale(any())).willReturn("test");
         given(userDao.findById(1)).willReturn(Optional.of(user));
         Assertions.assertThrows(MethodArgumentNotValidException.class, () -> userService.findUserOrderByOrderIdCostAndTime(1, 1));
@@ -211,7 +211,7 @@ public class UserServiceTest {
         Order order1 = new Order(1, null, LocalDateTime.now(), "order1", certificates1);
         List<Order> orders = new ArrayList<>();
         orders.add(order1);
-        User user = new User(1, "user1", "pass", Role.USER);
+        User user = new User(1, "user1", "pass", Role.ROLE_USER);
         order1.setUser(user);
         given(userDao.findById(1)).willReturn(Optional.of(user));
         given(conversionService.convert(order1, OrderDto.class)).willReturn(new OrderDto(order1.getCertificates().get(0).getPrice(),
