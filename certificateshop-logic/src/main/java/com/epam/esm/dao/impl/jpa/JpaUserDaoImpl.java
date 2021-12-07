@@ -21,7 +21,7 @@ import java.util.Optional;
 @Repository
 @Transactional
 public class JpaUserDaoImpl implements UserDao {
-    private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
+    private static final String INSERT_ENTITY_SQL = "insert into user (nickName, password, role) values (?, ?, ?)";
     private static final List<String> USER_HEADERS = Arrays.asList("userId", "userNickName", "userOrderId",
             "orderCreateDate", "orderName", "orderCertificate");
     private UserRepository userRepository;
@@ -64,9 +64,10 @@ public class JpaUserDaoImpl implements UserDao {
      */
     @Override
     public Optional<User> findById(long id) {
-        return entityManager
+        Optional<User> user = entityManager
                 .createQuery("select u from user u where u.id = :id", User.class)
                 .setParameter("id", id).getResultList().stream().findFirst();
+        return user;
     }
 
     /**
@@ -77,8 +78,11 @@ public class JpaUserDaoImpl implements UserDao {
     @Override
     public void update(User user) {
         User user1 = entityManager.find(User.class, user.getId());
-        entityManager.createQuery("UPDATE user u set u.nickName = :nickName where u.id = :id")
-                .setParameter("nickName", user.getNickName()).setParameter("id", user.getId()).executeUpdate();
+        entityManager.createQuery("UPDATE user u set u.nickName = :nickName, u.password = :password, u.role = :role where u.id = :id")
+                .setParameter("nickName", user.getNickName())
+                .setParameter("password", user.getPassword())
+                .setParameter("role", user.getRole().getId())
+                .setParameter("id", user.getId()).executeUpdate();
         entityManager.refresh(user1);
     }
 

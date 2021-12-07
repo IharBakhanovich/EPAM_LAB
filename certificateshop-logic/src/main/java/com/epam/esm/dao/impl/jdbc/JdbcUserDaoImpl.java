@@ -15,17 +15,18 @@ import java.util.Optional;
 @Profile("dev")
 @Repository
 public class JdbcUserDaoImpl implements UserDao {
-    private static final String FIND_ALL_ENTITIES_SQL = "select u.id as userId, u.nickName as userNickName from user as u";
+    private static final String FIND_ALL_ENTITIES_SQL
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole from user as u";
     private static final String FIND_ALL_ENTITIES_PAGINATION_SQL
-            = "select u.id as userId, u.nickName as userNickName from user as u" +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole from user as u" +
             " WHERE u.id IN (select * from (select id from user order by id LIMIT ?, ?) as query1)";
-    private static final String INSERT_ENTITY_SQL = "insert into user (nickName) values (?)";
+    private static final String INSERT_ENTITY_SQL = "insert into user (nickName, password, role) values (?, ?, ?)";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from user where id = ?";
-    private static final String UPDATE_ENTITY_SQL = "update user set nickName = ? where id = ?";
+    private static final String UPDATE_ENTITY_SQL = "update user set nickName = ?, password = ?, role = ? where id = ?";
     private static final String FIND_ENTITY_BY_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName from user as u where u.id = ?";
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole from user as u where u.id = ?";
     private static final String FIND_ENTITY_BY_NAME_SQL
-            = "select u.id as userId, u.nickName as userNickName from user as u where u.nickName = ?";
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole from user as u where u.nickName = ?";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -62,7 +63,8 @@ public class JdbcUserDaoImpl implements UserDao {
      */
     @Override
     public void save(User user) {
-        jdbcTemplate.update(INSERT_ENTITY_SQL, user.getNickName());
+        jdbcTemplate.update(INSERT_ENTITY_SQL,
+                user.getNickName(), user.getPassword(), user.getRole().getId(), user.getPassword());
     }
 
     /**

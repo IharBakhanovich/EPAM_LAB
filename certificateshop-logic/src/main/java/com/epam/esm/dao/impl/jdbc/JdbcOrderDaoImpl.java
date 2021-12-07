@@ -22,19 +22,19 @@ import java.util.Optional;
 @Repository
 public class JdbcOrderDaoImpl implements OrderDao {
     private static final String FIND_ALL_ENTITIES_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId";
     private static final String FIND_ALL_ENTITIES_BY_USER_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
             " ON u.id = uo.userId WHERE uo.userId = ?";
     private static final String FIND_ALL_ENTITIES_SQL_PAGINATION
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
@@ -46,7 +46,7 @@ public class JdbcOrderDaoImpl implements OrderDao {
             = "insert into userorder_certificate" +
             " (userOrderId, certificateId, certificateInJSON, certificatePrice) values (?, ?, ?, ?)";
     private static final String FIND_ENTITY_BY_ID_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +
@@ -55,7 +55,7 @@ public class JdbcOrderDaoImpl implements OrderDao {
             = "update userorder set userId = ?, create_date = ?, name = ? where id = ?";
     private static final String DELETE_ENTITY_BY_ID_SQL = "delete from userorder where id = ?";
     private static final String FIND_ENTITY_BY_NAME_SQL
-            = "select u.id as userId, u.nickName as userNickName, uo.id as userOrderId," +
+            = "select u.id as userId, u.nickName as userNickName, u.password as userPassword, u.role as userRole, uo.id as userOrderId," +
             " uo.create_date as orderCreateDate, uo.name as orderName, uoc.certificateInJSON as orderCertificate" +
             " from user as u" +
             " LEFT OUTER JOIN (userorder as uo LEFT OUTER JOIN userorder_certificate as uoc ON uo.id = uoc.userOrderId)" +

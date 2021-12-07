@@ -38,10 +38,13 @@ public class UserValidatorImpl implements UserValidator {
             checkEmptyFields(user, errorMessage);
         }
 
-        if (!isNameValid(user.getNickName(), 30)) {
+        if (!isNameValid(user.getNickName(), 30) || !isPasswordValid(user.getPassword(), 64)) {
             errorMessage.add(translator.toLocale("USER_NAME_IS_NOT_VALID_ERROR_MESSAGE"));
         }
 
+        if (!isPasswordValid(user.getPassword(), 64)) {
+            errorMessage.add(translator.toLocale("PASSWORD_IS_NOT_VALID_ERROR_MESSAGE"));
+        }
 
         if (!errorMessage.isEmpty()) {
             throw new MethodArgumentNotValidException(
@@ -52,6 +55,9 @@ public class UserValidatorImpl implements UserValidator {
     private void checkEmptyFields(User user, List<String> errorMessage) {
         if (user.getNickName() == null || user.getNickName().trim().equals("")) {
             errorMessage.add(translator.toLocale("THE_NICKNAME_FIELD_SHOULD_NOT_BE_EMPTY"));
+        }
+        if (user.getPassword() == null || user.getPassword().trim().equals("")) {
+            errorMessage.add(translator.toLocale("THE_PASSWORD_FIELD_SHOULD_NOT_BE_EMPTY"));
         }
     }
 
@@ -64,6 +70,18 @@ public class UserValidatorImpl implements UserValidator {
      */
     @Override
     public boolean isNameValid(String toValidate, int maxLength) {
+        byte[] byteArray = toValidate.getBytes();
+        return isUTF8(byteArray) && !(toValidate.length() > maxLength);
+    }
+
+    /**
+     * Checks whether a password corresponds UTF-8 format and its length is valid.
+     *
+     * @param toValidate is a String to validate.
+     * @param maxLength  is a max length for the description.
+     * @return true if the {@param toValidate} is in UTF-8 format and it length not more than {@param maxLength}.
+     */
+    private boolean isPasswordValid(String toValidate, int maxLength) {
         byte[] byteArray = toValidate.getBytes();
         return isUTF8(byteArray) && !(toValidate.length() > maxLength);
     }

@@ -14,5 +14,4 @@ public class EntityNotFoundException extends AppException {
     public EntityNotFoundException(String errorCode, Object errorMessage) {
         super(errorCode, errorMessage);
     }
-
 }

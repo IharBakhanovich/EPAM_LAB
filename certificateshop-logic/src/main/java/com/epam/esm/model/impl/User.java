@@ -26,4 +26,8 @@ public class User implements DatabaseEntity, Serializable {
     private long id;
     @Column(name = "nickname", unique = true, nullable = false)
     private String nickName;
+    @Column(name = "password", nullable = false)
+    private String password;
+    @Column(name="role", nullable = false)
+    private Role role;
 }

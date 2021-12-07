@@ -1,13 +1,12 @@
 package com.epam.esm.dao.impl.jdbc;
 
-import com.epam.esm.model.impl.Order;
+import com.epam.esm.model.impl.Role;
 import com.epam.esm.model.impl.User;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 /**
  * Maps values from {@link ResultSet} to {@link User}.
@@ -26,7 +25,9 @@ public class UserMapper implements RowMapper<User> {
     public User mapRow(ResultSet resultSet, int i) throws SQLException {
         return new User(
                 resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ID),
-                resultSet.getString(ColumnNames.TABLE_USER_COLUMN_NICKNAME)
+                resultSet.getString(ColumnNames.TABLE_USER_COLUMN_NICKNAME),
+                "*****",
+                Role.resolveRoleById(resultSet.getLong(ColumnNames.TABLE_USER_COLUMN_ROLE))
         );
     }
 }

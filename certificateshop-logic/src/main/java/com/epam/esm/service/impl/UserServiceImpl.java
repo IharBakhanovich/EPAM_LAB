@@ -1,17 +1,19 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.configuration.Translator;
+import com.epam.esm.converter.UserToUserDtoConverter;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.dao.impl.jdbc.ColumnNames;
 import com.epam.esm.dto.OrderDto;
+import com.epam.esm.dto.UserDto;
 import com.epam.esm.exception.DuplicateException;
 import com.epam.esm.exception.EntityNotFoundException;
 import com.epam.esm.exception.MethodArgumentNotValidException;
-import com.epam.esm.model.impl.GiftCertificate;
 import com.epam.esm.model.impl.Order;
+import com.epam.esm.model.impl.Role;
 import com.epam.esm.model.impl.User;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
@@ -20,10 +22,11 @@ import com.epam.esm.validator.TagValidator;
 import com.epam.esm.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,12 +53,15 @@ public class UserServiceImpl implements UserService {
     private final OrderService orderService;
     private final OrderDao orderDao;
     private final ConversionService conversionService;
+    private final PasswordEncoder passwordEncoder;
+    private final UserToUserDtoConverter userToUserDtoConverter;
 
     @Autowired
     public UserServiceImpl(UserDao userDao, CertificateDao certificateDAO, TagDao tagDAO,
                            CertificateValidator certificateValidator, TagValidator tagValidator,
-                           UserValidator userValidator, Translator translator,
-                           OrderService orderService, OrderDao orderDao, ConversionService conversionService) {
+                           UserValidator userValidator, Translator translator, OrderService orderService,
+                           OrderDao orderDao, ConversionService conversionService, PasswordEncoder passwordEncoder,
+                           UserToUserDtoConverter userToUserDtoConverter) {
         this.userDao = userDao;
         this.certificateDAO = certificateDAO;
         this.tagDAO = tagDAO;
@@ -66,6 +72,8 @@ public class UserServiceImpl implements UserService {
         this.orderService = orderService;
         this.orderDao = orderDao;
         this.conversionService = conversionService;
+        this.passwordEncoder = passwordEncoder;
+        this.userToUserDtoConverter = userToUserDtoConverter;
     }
 
     /**
@@ -74,10 +82,10 @@ public class UserServiceImpl implements UserService {
      * @param id is the id of the {@link User} to find in the system.
      */
     @Override
-    public User findUserById(long id) {
+    public UserDto findUserById(long id) {
         checkId(id);
         Optional<User> user = userDao.findById(id);
-        return getUserIfPresent(id, user);
+        return conversionService.convert(getUserIfPresent(id, user), UserDto.class);
     }
 
     private User getUserIfPresent(long id, Optional<User> user) {
@@ -107,13 +115,17 @@ public class UserServiceImpl implements UserService {
      * @return {@link List<User>}, that represents all the users in the system.
      */
     @Override
-    public List<User> findAllUsers(Map<String, String> parameters) {
+    public List<UserDto> findAllUsers(Map<String, String> parameters) {
         List<String> errorMessage = new ArrayList<>();
         int pageNumber = Integer.parseInt(parameters.get(ColumnNames.PAGE_NUMBER_PARAM_NAME));
         int amountEntitiesOnThePage = Integer.parseInt(parameters.get(ColumnNames.AMOUNT_OF_ENTITIES_ON_THE_PAGE_PARAM_NAME));
         checkLimitAndOffset(errorMessage, pageNumber, amountEntitiesOnThePage);
         List<User> users = userDao.findAllPagination(pageNumber, amountEntitiesOnThePage);
-        return users;
+        List<UserDto> userDtos = new ArrayList<>();
+        for (User user : users) {
+            userDtos.add(conversionService.convert(user, UserDto.class));
+        }
+        return userDtos;
     }
 
     private void checkLimitAndOffset(List<String> errorMessage, long offset, long limit) {
@@ -135,7 +147,7 @@ public class UserServiceImpl implements UserService {
      * @param user is the {@link User} to create.
      */
     @Override
-    public User createUser(User user) {
+    public UserDto createUser(User user) {
         List<String> errorMessage = new ArrayList<>();
         if (user.getNickName() != null && !user.getNickName().trim().equals("")) {
             checkIfUserExistInSystem(user, errorMessage);
@@ -146,12 +158,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private User createNewUser(User user) {
+    private UserDto createNewUser(User user) {
         userValidator.validateUser(user, true);
-        User userToSave = new User(0, user.getNickName());
+        // always created new user with the Role.USER
+        User userToSave = new User(0, user.getNickName(), passwordEncoder.encode(user.getPassword()), Role.ROLE_USER);
         userDao.save(userToSave);
         Optional<User> userFromDB = userDao.findByName(userToSave.getNickName());
-        return userFromDB.get();
+        return conversionService.convert(userFromDB.get(), UserDto.class);
     }
 
     private void checkIfUserExistInSystem(User user, List<String> errorMessage) {
@@ -167,8 +180,9 @@ public class UserServiceImpl implements UserService {
      *
      * @param userId is the id to find in the system.
      */
+    @PreAuthorize("#userId == authentication.principal.id")
     @Override
-    public User fetchUserById(long userId) {
+    public UserDto fetchUserById(long userId) {
         checkId(userId);
         Optional<User> user = userDao.findById(userId);
         if (!user.isPresent()) {
@@ -177,7 +191,7 @@ public class UserServiceImpl implements UserService {
                     .toLocale("THERE_IS_NO_A_USER_WITH_SUCH_AN_ID_IN_DATABASE"), userId));
             throw new EntityNotFoundException(ERROR_CODE_ENTITY_NOT_FOUND + ERROR_CODE_USER_NOT_VALID, errorMessage);
         }
-        return user.get();
+        return conversionService.convert(user.get(), UserDto.class);
     }
 
     /**
