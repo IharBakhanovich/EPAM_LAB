@@ -44,13 +44,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
         Optional<User> user = userDao.findByName(nickname);
         HashSet<Role> roleHashSet = new HashSet<>();
-//        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
         if (user.isPresent()) {
             roleHashSet.add(user.get().getRole());
             return new UserDetailsDto(user.get().getId(), user.get().getNickName(), user.get().getPassword(), roleHashSet);
-//            authorities.add(new SimpleGrantedAuthority(user.get().getRole().getName()));
-//            return new org.springframework.security.core.userdetails.User(user.get().getNickName(), user.get().getPassword(), authorities);
         } else {
             throw new UsernameNotFoundException(translator.toLocale("USER_NOT_FOUND_WITH_USERNAME") + nickname);
         }

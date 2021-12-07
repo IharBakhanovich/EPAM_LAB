@@ -31,12 +31,6 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
 
-        <!--        &lt;!&ndash; ConnectionPool &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.zaxxer</groupId>-->
-        <!--            <artifactId>HikariCP</artifactId>-->
-        <!--        </dependency>-->
-
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-bom</artifactId>
@@ -61,12 +55,6 @@
             <artifactId>h2</artifactId>
         </dependency>
 
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.projectlombok/lombok &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.projectlombok</groupId>-->
-<!--            <artifactId>lombok</artifactId>-->
-<!--        </dependency>-->
-
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -84,13 +72,6 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
-
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework</groupId>-->
-        <!--            <artifactId>spring-test</artifactId>-->
-        <!--            <version>5.3.10</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
